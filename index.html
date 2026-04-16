@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="mn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бичих хурдны тоглоом</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Outfit:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="username-screen">
+        <h1>БИЧИХ ХУРДНЫ ТОГЛООМ</h1>
+        <div class="input-group">
+            <input type="text" id="username-input" placeholder="Нэрээ оруулна уу" maxlength="12" autocomplete="off"
+                autocapitalize="off" autocorrect="off" spellcheck="false">
+            <button id="username-submit-btn">ҮРГЭЛЖЛҮҮЛЭХ</button>
+        </div>
+    </div>
+
+    <div id="game-container" class="hidden">
+        <header>
+            <div class="header-left">
+                <h1>Бичих хурдны тоглоом</h1>
+                <div id="player-display">Тоглогч: <span id="current-player">Зочин</span></div>
+            </div>
+            <div class="stats">
+                <div class="stat-item">Оноо: <span id="score">0</span></div>
+                <div class="stat-item">Дээд оноо: <span id="high-score">0</span></div>
+                <div class="stat-item" id="lives-container"></div>
+            </div>
+            <div class="header-right">
+                <button id="pause-btn" class="icon-only-btn-small" aria-label="Pause">⏸️</button>
+            </div>
+        </header>
+
+        <div id="game-area">
+            <!-- Words will fall here -->
+        </div>
+
+        <div id="input-area">
+            <input type="text" id="word-input" placeholder="Энд бичнэ үү..." autocomplete="off" autocapitalize="off"
+                autocorrect="off" spellcheck="false">
+        </div>
+    </div>
+
+    <div id="start-screen" class="hidden">
+        <h1>БИЧИХ ХУРДНЫ ТОГЛООМ</h1>
+        <p>Унаж буй үгсийг газарт хүрэхээс өмнө бичээрэй!</p>
+        <p>Level сонгох:</p>
+        <div class="difficulty-buttons">
+            <button class="diff-btn" data-speed="1.0" data-spawn="1.8">Level 1 (Удаан)</button>
+            <button class="diff-btn" data-speed="1.4" data-spawn="1.4">Level 2 (Энгийн)</button>
+            <button class="diff-btn" data-speed="2.0" data-spawn="1.1">Level 3 (Хурдан)</button>
+            <button class="diff-btn" data-speed="2.8" data-spawn="0.9">Level 4 (Маш хурдан)</button>
+        </div>
+        <button id="start-btn" class="primary-btn">Тоглоом эхлүүлэх</button>
+        <button id="start-leaderboard-btn" class="text-btn">🏆 Тэргүүлэгчид үзэх</button>
+        <button id="change-user-btn" class="text-btn">Хэрэглэгч солих</button>
+        <button id="settings-btn" class="icon-only-btn" aria-label="Settings">⚙️</button>
+    </div>
+
+    <div id="settings-modal" class="hidden">
+        <div class="modal-content settings-content">
+            <div class="modal-header">
+                <h2>⚙️ Тохиргоо</h2>
+                <button id="close-settings" class="close-btn">&times;</button>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <h3>Үсгийн хэмжээ</h3>
+                    <div class="size-options">
+                        <button class="size-btn" data-size="very-small" style="font-size: 1.4rem;">Aa</button>
+                        <button class="size-btn" data-size="small" style="font-size: 1.8rem;">Aa</button>
+                        <button class="size-btn selected" data-size="normal" style="font-size: 2.2rem;">Aa</button>
+                        <button class="size-btn" data-size="large" style="font-size: 2.6rem;">Aa</button>
+                        <button class="size-btn" data-size="very-large" style="font-size: 3rem;">Aa</button>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Дэлгэцийн өнгө</h3>
+                    <div class="theme-options">
+                        <button class="theme-btn selected" data-theme="default"
+                            style="background: #0a0a12; border: 1px solid #333;"></button>
+                        <button class="theme-btn" data-theme="high-contrast"
+                            style="background: #1b3a24; border: 1px solid #4a7c59;"></button>
+                        <button class="theme-btn" data-theme="warm"
+                            style="background: #2b2b2b; border: 1px solid #d4a373;"></button>
+                        <button class="theme-btn" data-theme="deep-blue"
+                            style="background: #1a1a3e; border: 1px solid #4a4aff;"></button>
+                    </div>
+                </div>
+
+                <div class="preview-box">
+                    <p>Жишээ харагдах байдал:</p>
+                    <div id="preview-area" class="preview-area">
+                        <span id="preview-word" class="falling-word">Алим</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 Дэлхийн тэргүүлэгчид</h2>
+                <button id="close-leaderboard" class="close-btn">&times;</button>
+            </div>
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" data-tab="level1">Level 1</button>
+                <button class="tab-btn" data-tab="level2">Level 2</button>
+                <button class="tab-btn" data-tab="level3">Level 3</button>
+                <button class="tab-btn" data-tab="level4">Level 4</button>
+            </div>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <!-- Scores will be populated here -->
+                <div class="loading">Оноо ачаалж байна...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over" class="hidden">
+        <h2>ТОГЛООМ ДУУССАН</h2>
+        <p id="final-score">Оноо: 0</p>
+        <div id="rank-display" class="hidden">Шинэ зэрэглэл: #<span id="new-rank"></span></div>
+        <div class="game-over-buttons">
+            <button id="restart-btn">Дахин тоглох</button>
+            <button id="view-leaderboard-btn">Тэргүүлэгчид</button>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+
+    <script src="words.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
