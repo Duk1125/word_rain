@@ -100,6 +100,14 @@ let fallSpeed = 120; // Changed to pixels per second for Delta Time (approx 2.0 
 let isPaused = false;
 let lastFrameTime = 0;
 let username = '';
+let playerId = '';
+
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 // Initialize
 // Function to get difficulty key from speed value
@@ -120,6 +128,13 @@ function loadHighScore(difficultyKey) {
 // Check for existing username
 function checkUsername() {
     const savedUser = localStorage.getItem('acidRainUsername');
+    let savedPlayerId = localStorage.getItem('acidRainPlayerId');
+    if (!savedPlayerId) {
+        savedPlayerId = generateUUID();
+        localStorage.setItem('acidRainPlayerId', savedPlayerId);
+    }
+    playerId = savedPlayerId;
+
     if (savedUser) {
         username = savedUser;
         showStartScreen();
@@ -286,9 +301,9 @@ changeUserBtn.addEventListener('click', () => {
 
 // Leaderboard Logic
 async function getLeaderboard(difficulty) {
-    if (typeof supabase !== 'undefined') {
+    if (typeof supabaseClient !== 'undefined') {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('leaderboards')
                 .select('*')
                 .eq('difficulty', difficulty)
@@ -311,6 +326,7 @@ async function saveScoreToLeaderboard(score, difficulty) {
     const timestamp = Date.now();
 
     const newEntry = {
+        player_id: playerId,
         name: username,
         score: score,
         difficulty: difficulty,
@@ -318,13 +334,13 @@ async function saveScoreToLeaderboard(score, difficulty) {
         timestamp: timestamp
     };
 
-    if (typeof supabase !== 'undefined') {
+    if (typeof supabaseClient !== 'undefined') {
         try {
             // Fetch existing highest score
-            const { data: existingData, error: fetchError } = await supabase
+            const { data: existingData, error: fetchError } = await supabaseClient
                 .from('leaderboards')
                 .select('score')
-                .eq('name', username)
+                .eq('player_id', playerId)
                 .eq('difficulty', difficulty);
                 
             if (fetchError) throw fetchError;
@@ -333,23 +349,29 @@ async function saveScoreToLeaderboard(score, difficulty) {
 
             if (score > existingScore) {
                 // Upsert new high score
-                const { error: upsertError } = await supabase
+                const { error: upsertError } = await supabaseClient
                     .from('leaderboards')
-                    .upsert(newEntry, { onConflict: 'name, difficulty' });
+                    .upsert({
+                        player_id: playerId,
+                        name: username,
+                        score: score,
+                        difficulty: difficulty,
+                        created_at: new Date().toISOString()
+                    }, { onConflict: 'player_id, difficulty' });
 
                 if (upsertError) throw upsertError;
 
                 // Find rank by fetching top 50
-                const { data: leaderboard, error: rankError } = await supabase
+                const { data: leaderboard, error: rankError } = await supabaseClient
                     .from('leaderboards')
-                    .select('name, score')
+                    .select('player_id, score')
                     .eq('difficulty', difficulty)
                     .order('score', { ascending: false })
                     .limit(50);
 
                 if (rankError) throw rankError;
 
-                const rank = leaderboard.findIndex(entry => entry.name === username && entry.score === score) + 1;
+                const rank = leaderboard.findIndex(entry => entry.player_id === playerId && entry.score === score) + 1;
                 return rank > 0 ? rank : -1;
             } else {
                 return -1; // Did not beat high score
@@ -361,16 +383,16 @@ async function saveScoreToLeaderboard(score, difficulty) {
 
     // Fallback to localStorage
     let leaderboard = JSON.parse(localStorage.getItem(`leaderboard_${difficulty}`) || '[]');
-    const existingEntryLocal = leaderboard.find(entry => entry.name === username);
+    const existingEntryLocal = leaderboard.find(entry => entry.player_id === playerId || entry.name === username);
 
     if (!existingEntryLocal || score > existingEntryLocal.score) {
-        leaderboard = leaderboard.filter(entry => entry.name !== username);
+        leaderboard = leaderboard.filter(entry => entry.player_id !== playerId && entry.name !== username);
         leaderboard.push(newEntry);
         leaderboard.sort((a, b) => b.score - a.score);
         leaderboard = leaderboard.slice(0, 50);
         localStorage.setItem(`leaderboard_${difficulty}`, JSON.stringify(leaderboard));
 
-        const rank = leaderboard.findIndex(entry => entry.name === username && entry.score === score) + 1;
+        const rank = leaderboard.findIndex(entry => (entry.player_id === playerId || entry.name === username) && entry.score === score) + 1;
         return rank > 0 ? rank : -1;
     } else {
         return -1;
@@ -388,7 +410,7 @@ async function renderLeaderboard(difficulty) {
 
     leaderboard.forEach((entry, index) => {
         const rank = index + 1;
-        const isCurrentUser = entry.name === username;
+        const isCurrentUser = entry.player_id ? entry.player_id === playerId : entry.name === username;
 
         const item = document.createElement('div');
         item.className = `leaderboard-item ${isCurrentUser ? 'current-user' : ''}`;
@@ -398,11 +420,13 @@ async function renderLeaderboard(difficulty) {
         else if (rank === 2) rankClass = 'rank-2';
         else if (rank === 3) rankClass = 'rank-3';
 
+        const displayDate = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : entry.date;
+
         item.innerHTML = `
             <div class="rank ${rankClass}">#${rank}</div>
             <div class="player-info">
                 <span class="player-name">${entry.name}</span>
-                <span class="player-date">${entry.date}</span>
+                <span class="player-date">${displayDate}</span>
             </div>
             <div class="player-score">${entry.score}</div>
         `;
