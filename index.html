@@ -23,7 +23,49 @@
         </div>
     </div>
 
-    <div id="game-container" class="hidden">
+    <div id="paragraph-container" class="hidden app-container">
+        <header>
+            <div class="header-left">
+                <h1>Эх бичих дадлага</h1>
+            </div>
+            <div class="stats" id="paragraph-stats">
+                <!-- Stats injected here -->
+            </div>
+            <div class="header-right">
+                <button class="icon-only-btn-small menu-return-btn" aria-label="Menu">🏠</button>
+            </div>
+        </header>
+        <div id="paragraph-display-area">
+            <!-- Text rendered here -->
+        </div>
+        <div class="input-area-standard">
+            <input type="text" id="paragraph-input" placeholder="Дээрх эхийг бичнэ үү..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </div>
+    </div>
+
+    <div id="keyboard-container" class="hidden app-container">
+        <header>
+            <div class="header-left">
+                <h1>Хурууны байрлал дадлага</h1>
+            </div>
+            <div class="stats" id="keyboard-stats">
+                <!-- Stats injected here -->
+            </div>
+            <div class="header-right">
+                <button class="icon-only-btn-small menu-return-btn" aria-label="Menu">🏠</button>
+            </div>
+        </header>
+        <div id="keyboard-hint-area"></div>
+        <div id="keyboard-display-area">
+            <!-- Pattern rendered here -->
+        </div>
+        <div class="input-area-standard">
+            <input type="text" id="keyboard-input" placeholder="Дээрх дарааллыг бичнэ үү..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </div>
+    </div>
+
+    <!-- Keep Original Game Container Structure -->
+    <div id="game-container" class="hidden app-container">
         <header>
             <div class="header-left">
                 <h1>Бичих хурдны тоглоом</h1>
@@ -51,16 +93,38 @@
 
     <div id="start-screen" class="hidden">
         <h1>БИЧИХ ХУРДНЫ ТОГЛООМ</h1>
-        <p>Унаж буй үгсийг газарт хүрэхээс өмнө бичээрэй!</p>
-        <p>Level сонгох:</p>
-        <div class="difficulty-buttons">
-            <button class="diff-btn" data-speed="1.0" data-spawn="1.8">Level 1 (Удаан)</button>
-            <button class="diff-btn" data-speed="1.4" data-spawn="1.4">Level 2 (Энгийн)</button>
-            <button class="diff-btn" data-speed="2.0" data-spawn="1.1">Level 3 (Хурдан)</button>
-            <button class="diff-btn" data-speed="2.8" data-spawn="0.9">Level 4 (Маш хурдан)</button>
+        <p>Бичих чадвараа хөгжүүлэх 3 өөр горимоос сонгоорой.</p>
+        
+        <div class="mode-selection">
+            <div class="mode-card" data-mode="word-rain">
+                <h3>🌧️ Үгэн бороо</h3>
+                <p>Унаж буй үгсийг хурдан бичиж устгах тоглоом.</p>
+                <!-- Difficulty remains part of word rain options but shown dynamically or globally -->
+                <div class="difficulty-buttons mini">
+                    <button class="diff-btn" data-speed="1.0" data-spawn="1.8">Lv 1</button>
+                    <button class="diff-btn" data-speed="1.4" data-spawn="1.4">Lv 2</button>
+                    <button class="diff-btn" data-speed="2.0" data-spawn="1.1">Lv 3</button>
+                    <button class="diff-btn" data-speed="2.8" data-spawn="0.9">Lv 4</button>
+                </div>
+                <button class="primary-btn start-mode-btn">Тоглох</button>
+            </div>
+
+            <div class="mode-card" data-mode="paragraph">
+                <h3>📝 Эх бичих</h3>
+                <p>Урт хэмжээний эхийг бичиж хурд (WPM), нарийвчлалаа хэмжих.</p>
+                <br>
+                <button class="primary-btn start-mode-btn">Дадлага эхлэх</button>
+            </div>
+
+            <div class="mode-card" data-mode="keyboard">
+                <h3>⌨️ Хурууны байрлал</h3>
+                <p>Товчлууруудын байрлалыг цээжлэх зориулалттай дасгал.</p>
+                <br>
+                <button class="primary-btn start-mode-btn">Дадлага эхлэх</button>
+            </div>
         </div>
-        <button id="start-btn" class="primary-btn">Тоглоом эхлүүлэх</button>
-        <button id="start-leaderboard-btn" class="text-btn">🏆 Тэргүүлэгчид үзэх</button>
+
+        <button id="start-leaderboard-btn" class="text-btn">🏆 Тэргүүлэгчид үзэх (Үгэн бороо)</button>
         <button id="change-user-btn" class="text-btn">Хэрэглэгч солих</button>
         <button id="settings-btn" class="icon-only-btn" aria-label="Settings">⚙️</button>
     </div>
@@ -140,7 +204,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
 
+    <!-- Data Files -->
     <script src="words.js"></script>
+    <script src="paragraphs.js"></script>
+    <script src="keyboard-lessons.js"></script>
+
+    <!-- Logic Modules -->
+    <script src="analytics.js"></script>
+    <script src="word-rain.js"></script>
+    <script src="paragraph-mode.js"></script>
+    <script src="keyboard-mode.js"></script>
+
+    <!-- Main Controller -->
     <script src="script.js"></script>
 </body>
 

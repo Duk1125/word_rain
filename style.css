@@ -71,7 +71,7 @@ button {
 }
 
 /* Layout Container */
-#game-container {
+.app-container {
     position: relative;
     width: 100%;
     height: 100%;
@@ -255,9 +255,110 @@ header {
 }
 
 #word-input:focus {
+    outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 20px var(--primary-glow);
     background: rgba(0, 0, 0, 0.5);
+}
+
+/* Standard Input Area for New Modes */
+.input-area-standard {
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background: rgba(10, 10, 18, 0.8);
+    backdrop-filter: blur(20px);
+    z-index: 10;
+    border-top: 1px solid var(--surface-border);
+}
+
+.input-area-standard input {
+    width: 100%;
+    max-width: 800px;
+    padding: 15px 25px;
+    font-family: var(--font-heading);
+    font-size: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--surface-border);
+    border-radius: 12px;
+    color: var(--text-color);
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-area-standard input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px var(--primary-glow);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Paragraph & Keyboard Display Areas */
+#paragraph-display-area, #keyboard-display-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 40px;
+    overflow-y: auto;
+    font-size: var(--game-font-size);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.correct {
+    color: var(--primary-color);
+    text-shadow: 0 0 8px var(--primary-glow);
+}
+
+.incorrect {
+    color: var(--danger-color);
+    text-decoration: underline;
+    text-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+}
+
+.untyped {
+    color: var(--text-muted);
+}
+
+.cursor {
+    border-bottom: 3px solid var(--primary-color);
+    animation: blink 1s infinite alternate;
+}
+
+@keyframes blink {
+    from { border-bottom-color: var(--primary-color); }
+    to { border-bottom-color: transparent; }
+}
+
+.kb-pattern {
+    font-family: monospace, var(--font-heading);
+    font-size: calc(var(--game-font-size) * 1.5);
+    letter-spacing: 5px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+#keyboard-hint-area {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    background: var(--surface-color);
+}
+
+.k-key {
+    display: inline-block;
+    padding: 10px 15px;
+    margin: 5px;
+    border: 2px solid var(--surface-border);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--text-color);
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
 /* Buttons */
@@ -433,6 +534,67 @@ header {
     box-shadow: 0 0 15px var(--primary-glow);
 }
 
+/* Mode Selection Cards */
+.mode-selection {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1000px;
+}
+
+.mode-card {
+    background: var(--surface-color);
+    border: 1px solid var(--surface-border);
+    border-radius: 16px;
+    padding: 25px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.mode-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 255, 204, 0.2);
+    border-color: rgba(0, 255, 204, 0.4);
+}
+
+.mode-card h3 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.mode-card p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: auto; /* Push content to bottom */
+}
+
+.difficulty-buttons.mini {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 15px 0;
+}
+
+.difficulty-buttons.mini .diff-btn {
+    height: 40px;
+    font-size: 0.9rem;
+    padding: 5px;
+}
+
+.start-mode-btn {
+    margin-top: 15px;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+}
+
 /* Username Input Group */
 .input-group {
     display: flex;
@@ -603,7 +765,7 @@ header {
     color: var(--primary-color);
 }
 
-/* Game Over Specifics */
+/* Game Over & Analytics Modals Specifics */
 #final-score {
     font-size: 2rem;
     font-family: var(--font-heading);
@@ -625,6 +787,7 @@ header {
     flex-direction: column;
     width: 100%;
     max-width: 300px;
+    margin: 0 auto;
 }
 
 #view-leaderboard-btn {
@@ -640,6 +803,84 @@ header {
 #view-leaderboard-btn:hover {
     border-color: var(--text-color);
     background: rgba(255, 255, 255, 0.05);
+}
+
+/* Analytics Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 3000;
+}
+
+.analytics-content {
+    padding: 30px;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.analytics-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.analytics-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.analytics-card .analytics-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.analytics-card .analytics-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-color);
+    font-family: var(--font-heading);
+}
+
+.analytics-list-section {
+    margin-bottom: 20px;
+}
+
+.analytics-list-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--surface-border);
+    padding-bottom: 5px;
+}
+
+.analytics-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.analytics-tag {
+    background: rgba(255,51,51,0.2);
+    color: #ff9999;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255,51,51,0.3);
 }
 
 /* Utilities */
