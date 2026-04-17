@@ -124,7 +124,6 @@ const AppController = (function() {
                 const mode = e.target.closest('.mode-card').dataset.mode;
                 if(mode === 'word-rain') {
                     showScreen(prepWordRain);
-                    renderLeaderboardMini('level2'); // Load default
                 } else if(mode === 'paragraph') {
                     showScreen(prepParagraph);
                 } else if(mode === 'keyboard') {
@@ -155,8 +154,6 @@ const AppController = (function() {
                 else if (selectedSpeed === 1.4) wrDiffKey = 'level2';
                 else if (selectedSpeed === 2.0) wrDiffKey = 'level3';
                 else if (selectedSpeed === 2.8) wrDiffKey = 'level4';
-
-                renderLeaderboardMini(wrDiffKey);
             });
         });
 
@@ -197,11 +194,15 @@ const AppController = (function() {
             });
         }
 
-        // Leaderboard modal specific (from game over screen)
-        if(document.getElementById('start-leaderboard-btn')) {
-            document.getElementById('start-leaderboard-btn').addEventListener('click', () => {
+        // Leaderboard modal specific (from game over screen / prep screen)
+        if(document.getElementById('prep-show-leaderboard-btn')) {
+            document.getElementById('prep-show-leaderboard-btn').addEventListener('click', () => {
                 document.getElementById('leaderboard-modal').classList.remove('hidden');
-                renderLeaderboard('level2'); // Default
+                // Ensure the correct tab is highlighted
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.tab === wrDiffKey);
+                });
+                renderLeaderboard(wrDiffKey);
             });
         }
         if(document.getElementById('close-leaderboard')) {
@@ -218,9 +219,11 @@ const AppController = (function() {
             });
         });
 
-        // Settings
-        document.getElementById('settings-btn').addEventListener('click', () => {
-            settingsModal.classList.remove('hidden');
+        // Settings (mapped to all bottom-left icons)
+        document.querySelectorAll('.settings-btn-bottom-left').forEach(btn => {
+            btn.addEventListener('click', () => {
+                settingsModal.classList.remove('hidden');
+            });
         });
         document.getElementById('close-settings').addEventListener('click', () => {
             settingsModal.classList.add('hidden');
@@ -429,48 +432,7 @@ const AppController = (function() {
         });
     }
 
-    async function renderLeaderboardMini(difficulty) {
-        const miniList = document.getElementById('prep-leaderboard-list');
-        if(!miniList) return;
-        miniList.innerHTML = '<div class="loading">Шинэчилж байна...</div>';
-        
-        try {
-            const leaderboard = await getLeaderboard(difficulty);
-            miniList.innerHTML = '';
 
-            const top10 = leaderboard.slice(0, 10);
-            
-            if (top10.length === 0) {
-                miniList.innerHTML = '<div class="loading" style="padding: 10px;">Оноо байхгүй байна.</div>';
-                return;
-            }
-
-            top10.forEach((entry, index) => {
-                const rank = index + 1;
-                const isCurrentUser = entry.player_id === playerId;
-                
-                let rankClass = '';
-                if (rank === 1) rankClass = 'rank-1';
-                else if (rank === 2) rankClass = 'rank-2';
-                else if (rank === 3) rankClass = 'rank-3';
-
-                const displayDate = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : entry.date;
-
-                miniList.innerHTML += `
-                    <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}" style="${isCurrentUser ? 'background: rgba(0,255,204,0.1); border-color: rgba(0,255,204,0.3);' : ''}">
-                        <div class="rank ${rankClass}">#${rank}</div>
-                        <div class="player-info">
-                            <span class="player-name">${entry.name}</span>
-                            <span class="player-date" style="font-size:0.8rem; opacity:0.6">${displayDate}</span>
-                        </div>
-                        <div class="player-score">${entry.score}</div>
-                    </div>
-                `;
-            });
-        } catch(e) {
-            miniList.innerHTML = '<div class="loading">Алдаа гарлаа.</div>';
-        }
-    }
 
     return {
         init,

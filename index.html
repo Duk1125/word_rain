@@ -14,12 +14,12 @@
 </head>
 
 <body>
-    <div id="username-screen">
+    <div id="username-screen" class="hidden app-container" style="justify-content: center; align-items: center;">
         <h1>БИЧИХ ХУРДНЫ ТОГЛООМ</h1>
-        <div class="input-group">
+        <div class="input-group" style="margin-top: 30px;">
             <input type="text" id="username-input" placeholder="Нэрээ оруулна уу" maxlength="12" autocomplete="off"
                 autocapitalize="off" autocorrect="off" spellcheck="false">
-            <button id="username-submit-btn">ҮРГЭЛЖЛҮҮЛЭХ</button>
+            <button id="username-submit-btn" class="primary-btn">ҮРГЭЛЖЛҮҮЛЭХ</button>
         </div>
     </div>
 
@@ -91,10 +91,7 @@
         </div>
     </div>
 
-    <div id="start-screen" class="hidden">
-        <div class="settings-top-right">
-            <button id="settings-btn" class="icon-only-btn" aria-label="Settings">⚙️</button>
-        </div>
+    <div id="start-screen" class="hidden app-container" style="justify-content: center; align-items: center;">
         <h1>БИЧИХ ХУРДНЫ ТОГЛООМ</h1>
         <p>Бичих чадвараа хөгжүүлэх 3 өөр горимоос сонгоорой.</p>
         
@@ -117,6 +114,8 @@
                 <button class="primary-btn prep-mode-btn">Бэлтгэл</button>
             </div>
         </div>
+        
+        <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
     <!-- Preparation Screens -->
@@ -129,6 +128,7 @@
                 <button class="text-btn back-to-menu-btn">Буцах</button>
             </div>
         </div>
+        <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
     <div id="prep-word-rain" class="hidden prep-screen app-container">
@@ -146,18 +146,14 @@
                 </div>
             </div>
 
-            <div class="prep-leaderboard-section">
-                <h3>🏆 Тэргүүлэгчид (Шилдэг 10)</h3>
-                <div id="prep-leaderboard-list" class="leaderboard-list-mini">
-                    <div class="loading">Уншиж байна...</div>
-                </div>
-            </div>
+            <button id="prep-show-leaderboard-btn" class="text-btn" style="margin: 10px 0;">🏆 Тэргүүлэгчид үзэх</button>
 
             <div class="prep-actions">
                 <button class="primary-btn real-start-btn" data-mode="word-rain">Тоглох</button>
                 <button class="text-btn back-to-menu-btn">Алхам буцах</button>
             </div>
         </div>
+        <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
     <div id="prep-paragraph" class="hidden prep-screen app-container">
@@ -169,6 +165,7 @@
                 <button class="text-btn back-to-menu-btn">Буцах</button>
             </div>
         </div>
+        <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
     <div id="settings-modal" class="hidden">
@@ -213,22 +210,22 @@
         </div>
     </div>
 
-    <div id="leaderboard-modal" class="hidden">
-        <div class="modal-content">
+    <div id="leaderboard-modal" class="hidden modal-overlay" style="display: flex;">
+        <div class="modal-content leaderboard-content">
             <div class="modal-header">
-                <h2>🏆 Дэлхийн тэргүүлэгчид</h2>
+                <h2>🏆 Тэргүүлэгчид (Үгэн бороо)</h2>
                 <button id="close-leaderboard" class="close-btn">&times;</button>
             </div>
-            <div class="leaderboard-tabs">
-                <button class="tab-btn active" data-tab="level1">Level 1</button>
-                <button class="tab-btn" data-tab="level2">Level 2</button>
-                <button class="tab-btn" data-tab="level3">Level 3</button>
-                <button class="tab-btn" data-tab="level4">Level 4</button>
+            <div class="leaderboard-tabs" style="margin-bottom: 20px;">
+                <button class="tab-btn active" data-tab="level1">Lv 1</button>
+                <button class="tab-btn" data-tab="level2">Lv 2</button>
+                <button class="tab-btn" data-tab="level3">Lv 3</button>
+                <button class="tab-btn" data-tab="level4">Lv 4</button>
             </div>
             <div class="leaderboard-list" id="leaderboard-list">
-                <!-- Scores will be populated here -->
-                <div class="loading">Оноо ачаалж байна...</div>
+                <div class="loading">Уншиж байна...</div>
             </div>
+            <!-- Remove change user button here because user wants to discard other icons, keep strictly related to leaderboard -->
         </div>
     </div>
 

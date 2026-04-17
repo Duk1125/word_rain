@@ -907,6 +907,13 @@ header {
     gap: 10px;
 }
 
+.settings-btn-bottom-left {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    z-index: 1000;
+}
+
 /* Preparation Screens */
 .prep-screen {
     justify-content: center;
