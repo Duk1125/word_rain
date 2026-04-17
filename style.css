@@ -547,9 +547,10 @@ header {
 .mode-card {
     background: var(--surface-color);
     border: 1px solid var(--surface-border);
-    border-radius: 16px;
-    padding: 25px;
-    width: 300px;
+    border-radius: 20px;
+    padding: 35px 25px;
+    width: 320px;
+    min-height: 280px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -558,41 +559,51 @@ header {
 }
 
 .mode-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 255, 204, 0.2);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 255, 204, 0.25);
     border-color: rgba(0, 255, 204, 0.4);
 }
 
 .mode-card h3 {
     color: var(--primary-color);
-    font-size: 1.5rem;
-    margin-bottom: 10px;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
 }
 
 .mode-card p {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     color: var(--text-muted);
     margin-bottom: auto; /* Push content to bottom */
+    line-height: 1.5;
+}
+
+.prep-mode-btn {
+    margin-top: 25px;
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1.2rem;
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    transition: all 0.2s;
+}
+
+.mode-card:hover .prep-mode-btn {
+    background: var(--primary-color);
+    color: #000;
 }
 
 .difficulty-buttons.mini {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin: 15px 0;
 }
 
 .difficulty-buttons.mini .diff-btn {
-    height: 40px;
-    font-size: 0.9rem;
+    height: 48px;
+    font-size: 1rem;
     padding: 5px;
-}
-
-.start-mode-btn {
-    margin-top: 15px;
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 1.1rem;
 }
 
 /* Username Input Group */
@@ -886,6 +897,103 @@ header {
 /* Utilities */
 .hidden {
     display: none !important;
+}
+
+.settings-top-right {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    display: flex;
+    gap: 10px;
+}
+
+/* Preparation Screens */
+.prep-screen {
+    justify-content: center;
+    align-items: center;
+}
+
+.prep-content {
+    background: var(--surface-color);
+    border: 1px solid var(--surface-border);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.prep-content h2 {
+    color: var(--primary-color);
+    font-size: 2rem;
+}
+
+.prep-content p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.prep-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.difficulty-select p {
+    margin-bottom: 10px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.prep-leaderboard-section {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--surface-border);
+}
+
+.prep-leaderboard-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #FFD700;
+}
+
+.leaderboard-list-mini {
+    max-height: 200px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.leaderboard-list-mini .leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.leaderboard-list-mini .rank { 
+    width: 30px; 
+    font-weight: 700;
+    color: var(--text-muted);
+}
+.leaderboard-list-mini .rank-1 { color: #FFD700; }
+.leaderboard-list-mini .rank-2 { color: #C0C0C0; }
+.leaderboard-list-mini .rank-3 { color: #CD7F32; }
+
+.leaderboard-list-mini .player-info {
+    flex-grow: 1;
+    display: flex;
+    gap: 15px;
+}
+
+.leaderboard-list-mini .player-score {
+    font-weight: bold;
+    color: var(--primary-color);
 }
 
 .loading {

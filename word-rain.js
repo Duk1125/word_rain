@@ -1,4 +1,4 @@
-const WordRain = (function() {
+window.WordRain = (function() {
     let score = 0;
     let lives = 5;
     let currentDifficulty = 'level2';

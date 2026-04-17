@@ -1,4 +1,4 @@
-const KeyboardMode = (function() {
+window.KeyboardMode = (function() {
     let containerElement;
     let patternDisplayElement;
     let inputElement;

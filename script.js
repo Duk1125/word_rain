@@ -15,6 +15,10 @@ const AppController = (function() {
     const paragraphContainer = document.getElementById('paragraph-container');
     const keyboardContainer = document.getElementById('keyboard-container');
 
+    const prepKeyboard = document.getElementById('prep-keyboard');
+    const prepWordRain = document.getElementById('prep-word-rain');
+    const prepParagraph = document.getElementById('prep-paragraph');
+
     // UI Elements
     const usernameInput = document.getElementById('username-input');
     const settingsModal = document.getElementById('settings-modal');
@@ -97,7 +101,11 @@ const AppController = (function() {
     }
 
     function showScreen(screenEl) {
-        [startScreen, usernameScreen, wordRainContainer, paragraphContainer, keyboardContainer].forEach(el => {
+        [
+            startScreen, usernameScreen, 
+            wordRainContainer, paragraphContainer, keyboardContainer,
+            prepKeyboard, prepWordRain, prepParagraph
+        ].forEach(el => {
             if(el) el.classList.add('hidden');
         });
         if(screenEl) screenEl.classList.remove('hidden');
@@ -109,20 +117,36 @@ const AppController = (function() {
         usernameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') submitUsername();
         });
-        document.getElementById('change-user-btn').addEventListener('click', () => {
-            localStorage.removeItem('acidRainUsername');
-            location.reload();
+
+        // Mode Navigation Routing
+        document.querySelectorAll('.prep-mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mode = e.target.closest('.mode-card').dataset.mode;
+                if(mode === 'word-rain') {
+                    showScreen(prepWordRain);
+                    renderLeaderboardMini('level2'); // Load default
+                } else if(mode === 'paragraph') {
+                    showScreen(prepParagraph);
+                } else if(mode === 'keyboard') {
+                    showScreen(prepKeyboard);
+                }
+            });
         });
 
-        // Mode Navigation
-        // Word Rain Mode Cards and internal difficulty buttons logic
+        document.querySelectorAll('.back-to-menu-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showScreen(startScreen);
+            });
+        });
+
+        // Word Rain Difficulty logic inside Prep Screen
         let selectedSpeed = 1.4;
         let selectedSpawn = 1.4;
         let wrDiffKey = 'level2';
 
-        document.querySelectorAll('.diff-btn').forEach(btn => {
+        document.querySelectorAll('#prep-word-rain .diff-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+                document.querySelectorAll('#prep-word-rain .diff-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
                 selectedSpeed = parseFloat(e.target.dataset.speed);
                 selectedSpawn = parseFloat(e.target.dataset.spawn);
@@ -131,12 +155,14 @@ const AppController = (function() {
                 else if (selectedSpeed === 1.4) wrDiffKey = 'level2';
                 else if (selectedSpeed === 2.0) wrDiffKey = 'level3';
                 else if (selectedSpeed === 2.8) wrDiffKey = 'level4';
+
+                renderLeaderboardMini(wrDiffKey);
             });
         });
 
-        document.querySelectorAll('.start-mode-btn').forEach(btn => {
+        document.querySelectorAll('.real-start-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const mode = e.target.closest('.mode-card').dataset.mode;
+                const mode = e.target.dataset.mode;
                 if(mode === 'word-rain') {
                     showScreen(wordRainContainer);
                     window.WordRain.start(selectedSpeed, selectedSpawn, wrDiffKey);
@@ -150,7 +176,7 @@ const AppController = (function() {
             });
         });
 
-        // Global Returns
+        // Global Returns from active game
         document.querySelectorAll('.menu-return-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if(window.WordRain) window.WordRain.stop();
@@ -164,19 +190,25 @@ const AppController = (function() {
         const pauseBtn = document.getElementById('pause-btn');
         if(pauseBtn) {
             pauseBtn.addEventListener('click', () => {
-                const isPaused = window.WordRain.togglePause();
-                pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
+                if(window.WordRain) {
+                    const isPaused = window.WordRain.togglePause();
+                    pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
+                }
             });
         }
 
-        // Leaderboard
-        document.getElementById('start-leaderboard-btn').addEventListener('click', () => {
-            document.getElementById('leaderboard-modal').classList.remove('hidden');
-            renderLeaderboard('level2'); // Default
-        });
-        document.getElementById('close-leaderboard').addEventListener('click', () => {
-            document.getElementById('leaderboard-modal').classList.add('hidden');
-        });
+        // Leaderboard modal specific (from game over screen)
+        if(document.getElementById('start-leaderboard-btn')) {
+            document.getElementById('start-leaderboard-btn').addEventListener('click', () => {
+                document.getElementById('leaderboard-modal').classList.remove('hidden');
+                renderLeaderboard('level2'); // Default
+            });
+        }
+        if(document.getElementById('close-leaderboard')) {
+            document.getElementById('close-leaderboard').addEventListener('click', () => {
+                document.getElementById('leaderboard-modal').classList.add('hidden');
+            });
+        }
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const tab = e.target.dataset.tab;
@@ -395,6 +427,49 @@ const AppController = (function() {
             `;
             leaderboardList.appendChild(item);
         });
+    }
+
+    async function renderLeaderboardMini(difficulty) {
+        const miniList = document.getElementById('prep-leaderboard-list');
+        if(!miniList) return;
+        miniList.innerHTML = '<div class="loading">Шинэчилж байна...</div>';
+        
+        try {
+            const leaderboard = await getLeaderboard(difficulty);
+            miniList.innerHTML = '';
+
+            const top10 = leaderboard.slice(0, 10);
+            
+            if (top10.length === 0) {
+                miniList.innerHTML = '<div class="loading" style="padding: 10px;">Оноо байхгүй байна.</div>';
+                return;
+            }
+
+            top10.forEach((entry, index) => {
+                const rank = index + 1;
+                const isCurrentUser = entry.player_id === playerId;
+                
+                let rankClass = '';
+                if (rank === 1) rankClass = 'rank-1';
+                else if (rank === 2) rankClass = 'rank-2';
+                else if (rank === 3) rankClass = 'rank-3';
+
+                const displayDate = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : entry.date;
+
+                miniList.innerHTML += `
+                    <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}" style="${isCurrentUser ? 'background: rgba(0,255,204,0.1); border-color: rgba(0,255,204,0.3);' : ''}">
+                        <div class="rank ${rankClass}">#${rank}</div>
+                        <div class="player-info">
+                            <span class="player-name">${entry.name}</span>
+                            <span class="player-date" style="font-size:0.8rem; opacity:0.6">${displayDate}</span>
+                        </div>
+                        <div class="player-score">${entry.score}</div>
+                    </div>
+                `;
+            });
+        } catch(e) {
+            miniList.innerHTML = '<div class="loading">Алдаа гарлаа.</div>';
+        }
     }
 
     return {

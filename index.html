@@ -92,41 +92,83 @@
     </div>
 
     <div id="start-screen" class="hidden">
+        <div class="settings-top-right">
+            <button id="settings-btn" class="icon-only-btn" aria-label="Settings">⚙️</button>
+        </div>
         <h1>БИЧИХ ХУРДНЫ ТОГЛООМ</h1>
         <p>Бичих чадвараа хөгжүүлэх 3 өөр горимоос сонгоорой.</p>
         
         <div class="mode-selection">
+            <div class="mode-card" data-mode="keyboard">
+                <h3>⌨️ Хурууны байрлал</h3>
+                <p>Товчлууруудын байрлалыг цээжлэх зориулалттай дасгал.</p>
+                <button class="primary-btn prep-mode-btn">Бэлтгэл</button>
+            </div>
+
             <div class="mode-card" data-mode="word-rain">
                 <h3>🌧️ Үгэн бороо</h3>
                 <p>Унаж буй үгсийг хурдан бичиж устгах тоглоом.</p>
-                <!-- Difficulty remains part of word rain options but shown dynamically or globally -->
-                <div class="difficulty-buttons mini">
-                    <button class="diff-btn" data-speed="1.0" data-spawn="1.8">Lv 1</button>
-                    <button class="diff-btn" data-speed="1.4" data-spawn="1.4">Lv 2</button>
-                    <button class="diff-btn" data-speed="2.0" data-spawn="1.1">Lv 3</button>
-                    <button class="diff-btn" data-speed="2.8" data-spawn="0.9">Lv 4</button>
-                </div>
-                <button class="primary-btn start-mode-btn">Тоглох</button>
+                <button class="primary-btn prep-mode-btn">Бэлтгэл</button>
             </div>
 
             <div class="mode-card" data-mode="paragraph">
                 <h3>📝 Эх бичих</h3>
                 <p>Урт хэмжээний эхийг бичиж хурд (WPM), нарийвчлалаа хэмжих.</p>
-                <br>
-                <button class="primary-btn start-mode-btn">Дадлага эхлэх</button>
-            </div>
-
-            <div class="mode-card" data-mode="keyboard">
-                <h3>⌨️ Хурууны байрлал</h3>
-                <p>Товчлууруудын байрлалыг цээжлэх зориулалттай дасгал.</p>
-                <br>
-                <button class="primary-btn start-mode-btn">Дадлага эхлэх</button>
+                <button class="primary-btn prep-mode-btn">Бэлтгэл</button>
             </div>
         </div>
+    </div>
 
-        <button id="start-leaderboard-btn" class="text-btn">🏆 Тэргүүлэгчид үзэх (Үгэн бороо)</button>
-        <button id="change-user-btn" class="text-btn">Хэрэглэгч солих</button>
-        <button id="settings-btn" class="icon-only-btn" aria-label="Settings">⚙️</button>
+    <!-- Preparation Screens -->
+    <div id="prep-keyboard" class="hidden prep-screen app-container">
+        <div class="prep-content">
+            <h2>⌨️ Хурууны байрлал - Бэлтгэл</h2>
+            <p>Товчлууруудын байрлалыг цээжлэх зориулалттай дасгал.</p>
+            <div class="prep-actions">
+                <button class="primary-btn real-start-btn" data-mode="keyboard">Эхлэх</button>
+                <button class="text-btn back-to-menu-btn">Буцах</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="prep-word-rain" class="hidden prep-screen app-container">
+        <div class="prep-content">
+            <h2>🌧️ Үгэн бороо - Бэлтгэл</h2>
+            <p>Доош унаж буй үгсийг хурдан бичиж устгах тоглоом.</p>
+            
+            <div class="difficulty-select">
+                <p>Түвшин сонгох:</p>
+                <div class="difficulty-buttons mini">
+                    <button class="diff-btn" data-speed="1.0" data-spawn="1.8">Lv 1</button>
+                    <button class="diff-btn selected" data-speed="1.4" data-spawn="1.4">Lv 2</button>
+                    <button class="diff-btn" data-speed="2.0" data-spawn="1.1">Lv 3</button>
+                    <button class="diff-btn" data-speed="2.8" data-spawn="0.9">Lv 4</button>
+                </div>
+            </div>
+
+            <div class="prep-leaderboard-section">
+                <h3>🏆 Тэргүүлэгчид (Шилдэг 10)</h3>
+                <div id="prep-leaderboard-list" class="leaderboard-list-mini">
+                    <div class="loading">Уншиж байна...</div>
+                </div>
+            </div>
+
+            <div class="prep-actions">
+                <button class="primary-btn real-start-btn" data-mode="word-rain">Тоглох</button>
+                <button class="text-btn back-to-menu-btn">Алхам буцах</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="prep-paragraph" class="hidden prep-screen app-container">
+        <div class="prep-content">
+            <h2>📝 Эх бичих - Бэлтгэл</h2>
+            <p>Урт хэмжээний эхийг бичиж хурд (WPM), нарийвчлалаа хэмжих.</p>
+            <div class="prep-actions">
+                <button class="primary-btn real-start-btn" data-mode="paragraph">Эхлэх</button>
+                <button class="text-btn back-to-menu-btn">Буцах</button>
+            </div>
+        </div>
     </div>
 
     <div id="settings-modal" class="hidden">

@@ -1,4 +1,4 @@
-const ParagraphMode = (function() {
+window.ParagraphMode = (function() {
     let containerElement;
     let textDisplayElement;
     let inputElement;
