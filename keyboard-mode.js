@@ -1,12 +1,10 @@
 window.KeyboardMode = (function() {
     let containerElement;
     let patternDisplayElement;
-    let inputElement;
     let statsElement;
     let keyboardDisplayElement;
     
-    let currentLesson = null;
-    let currentPatternIndex = 0;
+    let currentStageIndex = 0;
     
     let timerInterval;
     let startTime;
@@ -25,49 +23,68 @@ window.KeyboardMode = (function() {
         containerElement = elements.container;
         patternDisplayElement = elements.patternDisplay;
         statsElement = elements.stats;
-        keyboardDisplayElement = elements.keyboardDisplay; // Optional visual keys
+        keyboardDisplayElement = elements.keyboardDisplay;
 
         if(!patternDisplayElement) return;
 
         document.addEventListener('keydown', handleKeyDown);
     }
 
-    function startRandom() {
-        const lessons = window.keyboardLessons || [];
-        if(lessons.length === 0) return;
-        const randomIndex = Math.floor(Math.random() * lessons.length);
-        start(lessons[randomIndex]);
+    function generateRandomText(keys) {
+        let text = "";
+        let currentWordLength = 0;
+        // Random word length between 4 and 8
+        let targetWordLength = Math.floor(Math.random() * 5) + 4;
+        
+        for (let i = 0; i < 120; i++) {
+            // Need a space
+            if (currentWordLength >= targetWordLength && i < 119) {
+                text += " ";
+                currentWordLength = 0;
+                targetWordLength = Math.floor(Math.random() * 5) + 4;
+            } else {
+                let char = keys[Math.floor(Math.random() * keys.length)];
+                
+                // ~ 25% uppercase
+                if (Math.random() < 0.25) {
+                    char = char.toUpperCase();
+                } else {
+                    char = char.toLowerCase();
+                }
+                
+                text += char;
+                currentWordLength++;
+            }
+        }
+        return text;
     }
 
-    function start(lessonObj) {
-        currentLesson = lessonObj;
-        currentPatternIndex = 0;
+    function start(stageIndex) {
+        if (!window.keyboardLessons || stageIndex >= window.keyboardLessons.length || stageIndex === undefined) {
+            stageIndex = 0;
+        }
+        
+        currentStageIndex = stageIndex;
+        const stageObj = window.keyboardLessons[stageIndex];
         
         totalCorrectChars = 0;
         totalTypedChars = 0;
         timeElapsed = 0;
         
-        loadPattern();
+        targetText = generateRandomText(stageObj.keys);
+        typedText = "";
         
         isRunning = false;
         isActiveMode = true;
         startTime = null;
         clearInterval(timerInterval);
         
-        updateLiveStats();
-    }
-
-    function loadPattern() {
-        if(currentPatternIndex >= currentLesson.patterns.length) {
-            finish();
-            return;
-        }
-        
-        targetText = currentLesson.patterns[currentPatternIndex];
-        typedText = "";
-        
         renderPattern();
-        renderKeyboardHint();
+        renderKeyboardHint(stageObj);
+        updateLiveStats();
+        
+        // Ensure container is visible
+        if(containerElement) containerElement.classList.remove('hidden');
     }
 
     function handleKeyDown(e) {
@@ -98,14 +115,13 @@ window.KeyboardMode = (function() {
         renderPattern();
         
         if (isFinished) {
-            // Tally stats
             for (let i = 0; i < targetText.length; i++) {
                 totalTypedChars++;
                 if (typedText[i] === targetText[i]) totalCorrectChars++;
             }
-            
-            currentPatternIndex++;
-            setTimeout(loadPattern, 300); // Small delay to show completion
+            // Small delay to show completion then finish
+            isActiveMode = false;
+            setTimeout(finish, 300); 
         }
     }
 
@@ -136,14 +152,14 @@ window.KeyboardMode = (function() {
         patternDisplayElement.innerHTML = `<div class="kb-pattern">${html}</div>`;
     }
     
-    function renderKeyboardHint() {
+    function renderKeyboardHint(stageObj) {
         if(!keyboardDisplayElement) return;
-        const keys = currentLesson.keys;
+        const keys = stageObj.keys;
         keyboardDisplayElement.innerHTML = `
             <div class="keyboard-hints">
                 <p>Анхаарах товчнууд:</p>
-                <div class="key-list">
-                    ${keys.map(k => `<span class="k-key">${k}</span>`).join('')}
+                <div class="key-list" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px;">
+                    ${keys.map(k => `<span class="k-key" style="margin:0;">${k.toLowerCase()}</span>`).join('')}
                 </div>
             </div>
         `;
@@ -151,24 +167,27 @@ window.KeyboardMode = (function() {
 
     function updateLiveStats() {
         if(statsElement) {
-            let acc = window.TypingAnalytics.calculateAccuracy(totalCorrectChars, totalTypedChars);
+            const stageName = window.keyboardLessons[currentStageIndex]?.lesson || '';
             statsElement.innerHTML = `
-                <div class="stat-item">Хугацаа: <span>${window.TypingAnalytics.formatTime(timeElapsed)}</span></div>
-                <div class="stat-item">Дасгал: <span>${currentPatternIndex + 1}/${currentLesson.patterns.length}</span></div>
+                <div class="stat-item">Хугацаа: <span>${window.TypingAnalytics ? window.TypingAnalytics.formatTime(timeElapsed) : timeElapsed}</span></div>
+                <div class="stat-item">Шат: <span>${stageName}</span></div>
             `;
         }
     }
 
     function finish() {
         isRunning = false;
-        isActiveMode = false;
         clearInterval(timerInterval);
         
-        const finalAcc = window.TypingAnalytics.calculateAccuracy(totalCorrectChars, totalTypedChars);
+        const finalAcc = window.TypingAnalytics ? window.TypingAnalytics.calculateAccuracy(totalCorrectChars, totalTypedChars) : 0;
+        const finalWpm = window.TypingAnalytics ? window.TypingAnalytics.calculateWPM(totalCorrectChars, timeElapsed) : 0;
+        const stageName = window.keyboardLessons[currentStageIndex]?.lesson || '';
         
         const stats = {
-            "Хичээл": currentLesson.lesson,
-            "Зарцуулсан хугацаа": window.TypingAnalytics.formatTime(timeElapsed),
+            "Шат": stageName,
+            "Зарцуулсан хугацаа": window.TypingAnalytics ? window.TypingAnalytics.formatTime(timeElapsed) : timeElapsed,
+            "Бичсэн үсгийн тоо": totalTypedChars,
+            "WPM (Үг/минут)": finalWpm,
             "Нарийвчлал": finalAcc + "%"
         };
         
@@ -183,5 +202,5 @@ window.KeyboardMode = (function() {
         clearInterval(timerInterval);
     }
 
-    return { init, startRandom, stop };
+    return { init, start, stop };
 })();

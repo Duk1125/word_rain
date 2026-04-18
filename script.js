@@ -157,6 +157,17 @@ const AppController = (function() {
             });
         });
 
+        // Keyboard Stage logic inside Prep Screen
+        let selectedKeyboardStage = 0; // Default to Stage 0 (1-р шат)
+        
+        document.querySelectorAll('#keyboard-stage-select .diff-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('#keyboard-stage-select .diff-btn').forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+                selectedKeyboardStage = parseInt(e.target.dataset.stage, 10);
+            });
+        });
+
         document.querySelectorAll('.real-start-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const mode = e.target.dataset.mode;
@@ -168,7 +179,7 @@ const AppController = (function() {
                     window.ParagraphMode.startRandom();
                 } else if(mode === 'keyboard') {
                     showScreen(keyboardContainer);
-                    window.KeyboardMode.startRandom();
+                    window.KeyboardMode.start(selectedKeyboardStage);
                 }
             });
         });
