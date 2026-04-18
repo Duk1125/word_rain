@@ -533,16 +533,16 @@ header {
     margin-bottom: 30px;
     flex-wrap: wrap;
     justify-content: center;
-    max-width: 1000px;
+    max-width: 1400px; /* accommodate larger cards */
 }
 
 .mode-card {
     background: var(--surface-color);
     border: 1px solid var(--surface-border);
     border-radius: 20px;
-    padding: 35px 25px;
-    width: 320px;
-    min-height: 280px;
+    padding: 45px 35px;
+    width: 416px;
+    min-height: 364px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -565,12 +565,12 @@ header {
 .mode-card p {
     font-size: 1.05rem;
     color: var(--text-muted);
-    margin-bottom: auto; /* Push content to bottom */
     line-height: 1.5;
+    margin-bottom: 25px;
 }
 
 .prep-mode-btn {
-    margin-top: 25px;
+    margin-top: auto;
     width: 100%;
     padding: 14px 20px;
     font-size: 1.2rem;
@@ -578,6 +578,12 @@ header {
     border: 2px solid var(--primary-color);
     color: var(--primary-color);
     transition: all 0.2s;
+}
+
+.start-desc {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    margin-bottom: 30px;
 }
 
 .mode-card:hover .prep-mode-btn {
