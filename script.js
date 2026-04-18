@@ -80,11 +80,11 @@ const AppController = (function() {
             username = savedUser;
             const curPlayerEl = document.getElementById('current-player');
             if(curPlayerEl) curPlayerEl.textContent = username;
-            showScreen(startScreen);
-        } else {
-            showScreen(usernameScreen);
-            usernameInput.focus();
+            if(usernameInput) usernameInput.value = username;
         }
+        
+        showScreen(usernameScreen);
+        usernameInput.focus();
     }
 
     function submitUsername() {
