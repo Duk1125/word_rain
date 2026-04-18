@@ -563,7 +563,7 @@ header {
 }
 
 .mode-card p {
-    font-size: 1.05rem;
+    font-size: 22px;
     color: var(--text-muted);
     line-height: 1.5;
     margin-bottom: 25px;
@@ -581,9 +581,13 @@ header {
 }
 
 .start-desc {
-    font-size: 1.4rem;
+    font-size: 22px;
     color: var(--text-muted);
     margin-bottom: 30px;
+}
+
+.prep-content p {
+    font-size: 22px;
 }
 
 .mode-card:hover .prep-mode-btn {
@@ -593,15 +597,29 @@ header {
 
 .difficulty-buttons.mini {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 15px;
     margin: 15px 0;
+}
+
+.diff-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.diff-label {
+    font-size: 14px;
+    color: var(--text-muted);
 }
 
 .difficulty-buttons.mini .diff-btn {
     height: 48px;
     font-size: 1rem;
     padding: 5px;
+    width: 100%;
 }
 
 /* Username Input Group */
