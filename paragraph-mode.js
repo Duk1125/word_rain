@@ -13,21 +13,17 @@ window.ParagraphMode = (function() {
     let targetText = "";
     let typedText = "";
     
+    let isActiveMode = false;
+    
     function init(elements) {
         containerElement = elements.container;
         textDisplayElement = elements.textDisplay;
-        inputElement = elements.input;
         statsElement = elements.stats;
 
         // Ensure elements exist
-        if(!inputElement || !textDisplayElement) return;
+        if(!textDisplayElement) return;
 
-        inputElement.addEventListener('input', handleInput);
-        
-        // Prevent clicking outside to lose focus easily
-        containerElement.addEventListener('click', () => {
-            if(isRunning) inputElement.focus();
-        });
+        document.addEventListener('keydown', handleKeyDown);
     }
 
     function startRandom() {
@@ -44,30 +40,43 @@ window.ParagraphMode = (function() {
         typedText = "";
         timeElapsed = 0;
         isRunning = false;
+        isActiveMode = true;
         startTime = null;
         
         clearInterval(timerInterval);
-        
-        inputElement.value = "";
-        inputElement.disabled = false;
         
         renderText();
         updateLiveStats();
         
         // Show container if not handled by root
         containerElement.classList.remove('hidden');
-        inputElement.focus();
     }
 
-    function handleInput(e) {
-        if(!isRunning && e.target.value.length > 0) {
+    function handleKeyDown(e) {
+        if (!isActiveMode) return;
+
+        if (!isRunning && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
             // Start timer on first keystroke
             isRunning = true;
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
         }
         
-        typedText = e.target.value;
+        if (!isRunning) return;
+
+        // Prevent browser default actions for spacebar and backspace when playing
+        if (e.key === ' ' || e.key === 'Backspace') {
+            e.preventDefault();
+        }
+
+        if (e.key === 'Backspace') {
+            typedText = typedText.slice(0, -1);
+        } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            typedText += e.key;
+        } else {
+            return;
+        }
+        
         const isFinished = typedText.length >= targetText.length;
         
         renderText();
@@ -141,8 +150,8 @@ window.ParagraphMode = (function() {
 
     function finish() {
         isRunning = false;
+        isActiveMode = false;
         clearInterval(timerInterval);
-        inputElement.disabled = true;
         
         let correctCount = 0;
         for (let i = 0; i < typedText.length; i++) {
@@ -166,6 +175,7 @@ window.ParagraphMode = (function() {
 
     function stop() {
         isRunning = false;
+        isActiveMode = false;
         clearInterval(timerInterval);
     }
 

@@ -19,16 +19,17 @@ window.KeyboardMode = (function() {
     let totalCorrectChars = 0;
     let totalTypedChars = 0;
 
+    let isActiveMode = false;
+
     function init(elements) {
         containerElement = elements.container;
         patternDisplayElement = elements.patternDisplay;
-        inputElement = elements.input;
         statsElement = elements.stats;
         keyboardDisplayElement = elements.keyboardDisplay; // Optional visual keys
 
-        if(!inputElement || !patternDisplayElement) return;
+        if(!patternDisplayElement) return;
 
-        inputElement.addEventListener('input', handleInput);
+        document.addEventListener('keydown', handleKeyDown);
     }
 
     function startRandom() {
@@ -49,11 +50,9 @@ window.KeyboardMode = (function() {
         loadPattern();
         
         isRunning = false;
+        isActiveMode = true;
         startTime = null;
         clearInterval(timerInterval);
-        
-        inputElement.disabled = false;
-        inputElement.focus();
         
         updateLiveStats();
     }
@@ -66,20 +65,34 @@ window.KeyboardMode = (function() {
         
         targetText = currentLesson.patterns[currentPatternIndex];
         typedText = "";
-        inputElement.value = "";
         
         renderPattern();
         renderKeyboardHint();
     }
 
-    function handleInput(e) {
-        if(!isRunning && e.target.value.length > 0) {
+    function handleKeyDown(e) {
+        if (!isActiveMode) return;
+
+        if (!isRunning && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
             isRunning = true;
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
         }
         
-        typedText = e.target.value;
+        if (!isRunning) return;
+
+        if (e.key === ' ' || e.key === 'Backspace') {
+            e.preventDefault();
+        }
+
+        if (e.key === 'Backspace') {
+            typedText = typedText.slice(0, -1);
+        } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            typedText += e.key;
+        } else {
+            return;
+        }
+        
         const isFinished = typedText.length >= targetText.length;
         
         renderPattern();
@@ -148,8 +161,8 @@ window.KeyboardMode = (function() {
 
     function finish() {
         isRunning = false;
+        isActiveMode = false;
         clearInterval(timerInterval);
-        inputElement.disabled = true;
         
         const finalAcc = window.TypingAnalytics.calculateAccuracy(totalCorrectChars, totalTypedChars);
         
@@ -166,6 +179,7 @@ window.KeyboardMode = (function() {
 
     function stop() {
         isRunning = false;
+        isActiveMode = false;
         clearInterval(timerInterval);
     }
 
