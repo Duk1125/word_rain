@@ -1,13 +1,14 @@
 // ============================================================
 // keyboard-mode.js — Хурууны байрлал
-// Layout order: header → text slider → keyboard guide (bottom)
+// Single-line sliding practice + visual keyboard guide
+// Layout order: header → text slider → keyboard/finger guide
 // ============================================================
 
 window.KeyboardMode = (function () {
 
     // ── DOM refs ──────────────────────────────────────────
-    // displayAreaEl = #keyboard-display-area  → text slider
-    // hintAreaEl    = #keyboard-hint-area     → keyboard + finger guide
+    // displayAreaEl = #keyboard-display-area  (text slider, ABOVE)
+    // hintAreaEl    = #keyboard-hint-area     (keyboard + finger, BELOW)
     let containerEl, displayAreaEl, hintAreaEl, statsEl;
 
     // ── State ─────────────────────────────────────────────
@@ -26,19 +27,18 @@ window.KeyboardMode = (function () {
     let charSpans = [];
 
     // ── Constants ─────────────────────────────────────────
-    const TOTAL_CHARS  = 120;
-    const CHAR_PX      = 44;    // px per character cell (must match CSS min-width)
-    const ANCHOR_LEFT  = 140;   // px from viewport left where active char is pinned
+    const TOTAL_CHARS = 120;
+    const CHAR_PX     = 44;   // px per char cell — must match CSS .kb-char min-width
+    const ANCHOR_LEFT = 140;  // px from viewport left where active char is pinned
 
     // ── init ──────────────────────────────────────────────
     function init(elements) {
         containerEl   = elements.container;
-        displayAreaEl = elements.patternDisplay;   // #keyboard-display-area
-        hintAreaEl    = elements.keyboardDisplay;  // #keyboard-hint-area
+        displayAreaEl = elements.patternDisplay;  // #keyboard-display-area
+        hintAreaEl    = elements.keyboardDisplay; // #keyboard-hint-area
         statsEl       = elements.stats;
 
         if (!displayAreaEl) return;
-
         document.addEventListener('keydown', handleKeyDown);
     }
 
@@ -64,18 +64,16 @@ window.KeyboardMode = (function () {
         buildSliderDOM();
         renderKeyboard(targetText[0]);
         updateStats();
-
         if (containerEl) containerEl.classList.remove('hidden');
     }
 
-    // ── Text generation (no spaces, shuffle-based) ────────
+    // ── Text generation (no spaces) ───────────────────────
     function generateText(keys) {
         const capitalRatio = 0.25;
         const pool = [...keys];
         let shuffled = shuffle([...pool]);
         let si = 0;
         let text = "";
-
         for (let i = 0; i < TOTAL_CHARS; i++) {
             if (si >= shuffled.length) { shuffled = shuffle([...pool]); si = 0; }
             let ch = shuffled[si++];
@@ -92,7 +90,7 @@ window.KeyboardMode = (function () {
         return arr;
     }
 
-    // ── Build sliding text DOM (into displayAreaEl) ───────
+    // ── Build sliding DOM ─────────────────────────────────
     function buildSliderDOM() {
         displayAreaEl.innerHTML = '';
 
@@ -139,8 +137,9 @@ window.KeyboardMode = (function () {
             e.preventDefault();
             return;
         }
-        // Ignore modifier-only keys
-        if (e.key === 'Shift' || e.key === 'CapsLock' || e.key.length !== 1) return;
+        // Ignore lone modifier keys
+        if (['Shift','CapsLock','Control','Alt','Meta'].includes(e.key)) return;
+        if (e.key.length !== 1) return;
 
         if (!isRunning) {
             isRunning = true;
@@ -186,13 +185,13 @@ window.KeyboardMode = (function () {
         updateStats();
     }
 
-    // ── Progress ──────────────────────────────────────────
+    // ── Progress bar ──────────────────────────────────────
     function updateProgressBar() {
         const bar = document.getElementById('kb-progress-bar');
         if (bar) bar.style.width = ((charIndex / TOTAL_CHARS) * 100) + '%';
     }
 
-    // ── Stats ─────────────────────────────────────────────
+    // ── Live stats ────────────────────────────────────────
     function updateStats() {
         if (!statsEl) return;
         const stageName = (window.keyboardLessons || [])[currentStageIndex]?.lesson || '';
@@ -243,124 +242,158 @@ window.KeyboardMode = (function () {
     }
 
     // ============================================================
-    // Visual keyboard + finger guide  (rendered into hintAreaEl)
-    // Layout order inside hintAreaEl: keyboard first, finger guide below
+    // Visual keyboard + finger guide
+    // Rendered into hintAreaEl (below the text slider).
+    //
+    // Active key colour  = the finger colour (not fixed cyan)
+    // Shift colour       = semi-transparent version of finger colour
+    // Finger guide       = same colour system
     // ============================================================
     function renderKeyboard(targetChar) {
         if (!hintAreaEl) return;
 
-        const layout    = window.kbLayout   || [];
-        const charPos   = window.kbCharPos  || {};
+        const layout    = window.kbLayout    || [];
+        const charPos   = window.kbCharPos   || {};
         const fingerMap = window.kbFingerMap || {};
+        const FC        = window.FINGER_COLORS || {};
 
-        // Determine target key position & finger
-        const ch         = targetChar ? targetChar.toLowerCase() : null;
-        const isUpper    = targetChar ? (targetChar !== targetChar.toLowerCase()) : false;
-        const pos        = ch ? charPos[ch] : null;          // { row, col }
-        const fingerInfo = pos ? fingerMap[`${pos.row}-${pos.col}`] : null;
+        // Resolve target character lookup
+        const ch      = targetChar ? targetChar.toLowerCase() : null;
+        const isUpper = targetChar
+            ? (targetChar !== targetChar.toLowerCase() && targetChar.toLowerCase() !== targetChar.toUpperCase())
+            : false;
+        const pos     = ch ? charPos[ch] : null;           // { row, col }
+        const fiInfo  = pos ? fingerMap[`${pos.row}-${pos.col}`] : null;
+        const fiNum   = fiInfo ? fiInfo.finger : null;
+        const fiCol   = fiNum  ? FC[fiNum]     : null;
 
-        // Which Shift should light up? Opposite hand from the character key.
-        // Left char → right Shift; right char → left Shift.
-        let shiftHand = null;
-        if (isUpper && fingerInfo) {
-            shiftHand = fingerInfo.hand === 'left' ? 'right' : 'left';
+        // For uppercase, opposite hand uses Shift
+        const shiftHand = (isUpper && fiInfo)
+            ? (fiInfo.hand === 'left' ? 'right' : 'left')
+            : null;
+
+        // ── Key geometry ─────────────────────────────────
+        // Row stagger: no extra padding on row 3 (Shift fills the gap)
+        const staggerPx = [0, 22, 42, 0];
+
+        // ── Helper: build one key element style ──────────
+        function activeKeyStyle(fc) {
+            return `background:${fc.bg};border-color:${fc.border};color:${fc.text};` +
+                   `box-shadow:0 0 22px ${fc.bg}99;transform:translateY(2px) scale(1.12);` +
+                   `z-index:2;position:relative;`;
         }
 
-        // ── Row stagger offsets (px, like a real keyboard) ──
-        // Row 0 (numbers): 0px indent
-        // Row 1 (upper):   ~24px
-        // Row 2 (home):    ~36px
-        // Row 3 (lower):   ~60px
-        const staggerPx = [0, 24, 36, 60];
+        function subtleKeyStyle(fc) {
+            return `background:${fc.subtle};border-color:${fc.subtleBorder};color:${fc.border};`;
+        }
 
-        // ── Number row (decorative) ──────────────────────────
+        // ── Render keyboard HTML ──────────────────────────
         let kbHTML = '<div class="vkb">';
 
-        // Row 0 – number row
-        kbHTML += `<div class="vkb-row" style="padding-left:0px">`;
-        const numRow = layout[0] || [];
-        for (let c = 0; c < numRow.length; c++) {
-            kbHTML += `<div class="vkb-key vkb-num">${numRow[c]}</div>`;
+        // Row 0 – symbol row (decorative, dimmed)
+        kbHTML += `<div class="vkb-row" style="padding-left:${staggerPx[0]}px">`;
+        const symRow = layout[0] || [];
+        for (let c = 0; c < symRow.length; c++) {
+            const ch0   = symRow[c];
+            const isT   = pos && pos.row === 0 && pos.col === c;
+            const fi0   = fingerMap[`0-${c}`];
+            const fCls  = fi0 ? `vkb-${fi0.hand}-f${fi0.finger}` : '';
+            const sAttr = isT && fiCol ? `style="${activeKeyStyle(fiCol)}"` : '';
+            kbHTML += `<div class="vkb-key vkb-sym ${fCls}" ${sAttr}>${ch0}</div>`;
         }
-        // Backspace (wide, decorative)
-        kbHTML += `<div class="vkb-key vkb-wide vkb-num">⌫</div>`;
         kbHTML += `</div>`;
 
-        // Rows 1-3 – letter rows with Shift
+        // Rows 1-3 – letter rows
         for (let r = 1; r <= 3; r++) {
             kbHTML += `<div class="vkb-row" style="padding-left:${staggerPx[r]}px">`;
 
-            // Left Shift on Row 3
+            // LEFT SHIFT (row 3 only, no extra indent before it)
             if (r === 3) {
-                const lShiftActive = shiftHand === 'left' ? ' vkb-key-shift-active' : '';
-                kbHTML += `<div class="vkb-key vkb-shift-left vkb-left-f4${lShiftActive}" title="Зүүн Shift">⇧</div>`;
+                const lsActive = shiftHand === 'left' && fiCol;
+                const lsStyle  = lsActive
+                    ? `style="${subtleKeyStyle(fiCol)}box-shadow:0 0 14px ${fiCol.bg}60;"`
+                    : '';
+                kbHTML += `<div class="vkb-key vkb-shift vkb-left-f4" ${lsStyle} title="Зүүн Shift">⇧</div>`;
             }
 
             const row = layout[r] || [];
             for (let c = 0; c < row.length; c++) {
-                const keyChar   = row[c];
-                const isTarget  = pos && pos.row === r && pos.col === c;
-                const fi        = fingerMap[`${r}-${c}`];
-                const fClass    = fi ? `vkb-${fi.hand}-f${fi.finger}` : '';
-                const aClass    = isTarget ? ' vkb-key-active' : '';
-                const title     = fi ? fi.name : '';
-                const display   = isUpper && isTarget
-                    ? keyChar.toUpperCase()
-                    : keyChar.toUpperCase();   // always show uppercase label on key
-                kbHTML += `<div class="vkb-key ${fClass}${aClass}" title="${title}">${display}</div>`;
+                const keyChar = row[c];
+                const isT     = pos && pos.row === r && pos.col === c;
+                const fi      = fingerMap[`${r}-${c}`];
+                const fCls    = fi ? `vkb-${fi.hand}-f${fi.finger}` : '';
+                const sAttr   = isT && fiCol ? `style="${activeKeyStyle(fiCol)}"` : '';
+                const title   = fi ? fi.name : '';
+                kbHTML += `<div class="vkb-key ${fCls}" ${sAttr} title="${title}">${keyChar.toUpperCase()}</div>`;
             }
 
-            // Right Shift on Row 3
+            // RIGHT SHIFT (row 3 only)
             if (r === 3) {
-                const rShiftActive = shiftHand === 'right' ? ' vkb-key-shift-active' : '';
-                kbHTML += `<div class="vkb-key vkb-shift-right vkb-right-f4${rShiftActive}" title="Баруун Shift">⇧</div>`;
+                const rsActive = shiftHand === 'right' && fiCol;
+                const rsStyle  = rsActive
+                    ? `style="${subtleKeyStyle(fiCol)}box-shadow:0 0 14px ${fiCol.bg}60;"`
+                    : '';
+                kbHTML += `<div class="vkb-key vkb-shift vkb-right-f4" ${rsStyle} title="Баруун Shift">⇧</div>`;
             }
 
             kbHTML += `</div>`;
         }
-        kbHTML += '</div>'; // end .vkb
+        kbHTML += `</div>`; // .vkb
 
-        // ── Finger guide ──────────────────────────────────────
-        // Finger display names
+        // ── Finger guide HTML ─────────────────────────────
         const fingerLabel = ['', 'долоовор', 'дунд', 'ядам', 'чигчий'];
 
-        function handHTML(hand, label) {
-            // Left: pinky(4)→index(1), Right: index(1)→pinky(4)
+        function handHTML(hand, handLabel) {
+            // Left hand: pinky(4)→index(1)  Right hand: index(1)→pinky(4)
             const fingers = hand === 'left' ? [4, 3, 2, 1] : [1, 2, 3, 4];
-            const cells = fingers.map(fi => {
-                const isActive = fingerInfo && fingerInfo.hand === hand && fingerInfo.finger === fi;
-                // Shift also lights up appropriate pinky
-                const isShiftActive = isUpper && shiftHand === hand && fi === 4;
-                const activeClass = (isActive || isShiftActive) ? 'fguide-active' : '';
-                return `<div class="fguide-finger ${activeClass} fguide-${hand}-f${fi}">
-                    <div class="fguide-tip"></div>
-                    <div class="fguide-label">${fingerLabel[fi]}</div>
+
+            const cells = fingers.map(f => {
+                const isActiveChar  = fiInfo && fiInfo.hand === hand && fiInfo.finger === f;
+                const isShiftFinger = isUpper && shiftHand === hand && f === 4;
+                const highlight     = isActiveChar || isShiftFinger;
+                const fc            = FC[f];
+
+                const tipStyle = fc
+                    ? highlight
+                        ? `style="background:${fc.bg};box-shadow:0 0 20px ${fc.bg}99;border-color:${fc.border};" `
+                        : `style="border-color:${fc.subtleBorder};background:${fc.subtle};" `
+                    : '';
+                const labelStyle = fc
+                    ? `style="color:${fc.label};opacity:${highlight ? 1 : 0.55};" `
+                    : '';
+
+                return `<div class="fguide-finger fguide-${hand}-f${f}">
+                    <div class="fguide-tip" ${tipStyle}></div>
+                    <div class="fguide-label" ${labelStyle}>${fingerLabel[f]}</div>
                 </div>`;
             }).join('');
+
             return `<div class="fguide-hand">
                 <div class="fguide-fingers ${hand}">${cells}</div>
-                <div class="fguide-hand-label">${label}</div>
+                <div class="fguide-hand-label">${handLabel}</div>
             </div>`;
         }
 
-        // Hint text below finger guide
-        let hintText = '';
-        if (fingerInfo) {
-            hintText = `<div class="fguide-hint">▶ ${fingerInfo.name}`;
-            if (isUpper) hintText += ` &nbsp;+&nbsp; ${shiftHand === 'left' ? 'Зүүн' : 'Баруун'} Shift`;
-            hintText += `</div>`;
+        // Hint line below finger guide
+        let hintLine = '';
+        if (fiInfo && fiCol) {
+            const shiftNote = isUpper
+                ? ` <span style="color:rgba(255,255,255,0.45)">+</span>` +
+                  ` <span style="color:${fiCol.label}">${shiftHand === 'left' ? 'Зүүн' : 'Баруун'} Shift</span>`
+                : '';
+            hintLine = `<div class="fguide-hint" style="color:${fiCol.label}">` +
+                       `▶ ${fiInfo.name}${shiftNote}</div>`;
         }
 
-        const guideHTML = `
-            <div class="fguide-section">
+        const guideHTML =
+            `<div class="fguide-section">
                 <div class="fguide">
                     ${handHTML('left',  'Зүүн гар')}
                     ${handHTML('right', 'Баруун гар')}
                 </div>
-                ${hintText}
+                ${hintLine}
             </div>`;
 
-        // Keyboard top, finger guide below
         hintAreaEl.innerHTML = kbHTML + guideHTML;
     }
 

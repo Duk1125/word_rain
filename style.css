@@ -311,7 +311,7 @@ header {
 #keyboard-display-area {
     flex: 0 0 auto;
     width: 100%;
-    padding: 32px 16px 16px; /* breathing room from header */
+    padding: 44px 20px 20px; /* push text slider further from header */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -324,12 +324,13 @@ header {
 #keyboard-hint-area {
     flex: 1 1 auto;
     width: 100%;
-    padding: 12px 16px 60px;
+    /* push content downward so keyboard fills the lower space */
+    padding: 30px 20px 55px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    gap: 20px;
+    justify-content: center;   /* vertically center so it fills the gap */
+    gap: 26px;
     overflow-y: auto;
     border-top: 1px solid var(--surface-border);
 }
@@ -445,65 +446,64 @@ header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 8px;
-    font-size: 0.88rem;
+    width: 52px;
+    height: 52px;
+    border-radius: 9px;
+    font-size: 0.92rem;
     font-weight: 700;
     font-family: var(--font-heading);
     border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.6);
-    transition: background 0.12s, color 0.12s, box-shadow 0.12s, transform 0.08s;
+    color: rgba(255,255,255,0.65);
+    transition: background 0.1s, color 0.1s, box-shadow 0.1s, transform 0.07s;
     user-select: none;
     cursor: default;
-}
-
-/* Finger colour coding (subtle) */
-.vkb-left-f4,  .vkb-right-f4  { background: rgba(120,80,200,0.15); border-color: rgba(120,80,200,0.3); }
-.vkb-left-f3,  .vkb-right-f3  { background: rgba(60,120,220,0.15); border-color: rgba(60,120,220,0.3); }
-.vkb-left-f2,  .vkb-right-f2  { background: rgba(40,170,150,0.15); border-color: rgba(40,170,150,0.3); }
-.vkb-left-f1,  .vkb-right-f1  { background: rgba(30,180,80,0.15);  border-color: rgba(30,180,80,0.3);  }
-
-.vkb-key-active {
-    background: var(--primary-color) !important;
-    color: #000 !important;
-    border-color: var(--primary-color) !important;
-    box-shadow: 0 0 20px rgba(0,255,204,0.6);
-    transform: translateY(2px) scale(1.1);
-    z-index: 2;
     position: relative;
 }
 
-/* Number-row keys (decorative, dimmer) */
-.vkb-num {
+/* ── Finger colour coding: चигчий=blue, ядам=red, дунд=green, долоовор=yellow ── */
+/* чигчий (pinky, f4) – blue */
+.vkb-left-f4,  .vkb-right-f4  {
+    background: rgba(74,143,255,0.14);
+    border-color: rgba(74,143,255,0.36);
+    color: rgba(184,210,255,0.75);
+}
+/* ядам (ring, f3) – red */
+.vkb-left-f3,  .vkb-right-f3  {
+    background: rgba(255,79,79,0.14);
+    border-color: rgba(255,79,79,0.36);
+    color: rgba(255,180,180,0.75);
+}
+/* дунд (middle, f2) – green */
+.vkb-left-f2,  .vkb-right-f2  {
+    background: rgba(46,204,110,0.14);
+    border-color: rgba(46,204,110,0.36);
+    color: rgba(150,255,200,0.75);
+}
+/* долоовор (index, f1) – yellow */
+.vkb-left-f1,  .vkb-right-f1  {
+    background: rgba(245,196,0,0.14);
+    border-color: rgba(245,196,0,0.36);
+    color: rgba(255,235,120,0.75);
+}
+
+/* Symbol row – dimmed */
+.vkb-sym {
     background: rgba(255,255,255,0.03);
     border-color: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.35);
-    font-size: 0.78rem;
+    color: rgba(255,255,255,0.30);
+    font-size: 0.76rem;
+    width: 48px;
+    height: 42px;
 }
 
-/* Shift keys */
-.vkb-shift-left,
-.vkb-shift-right {
-    width: 68px;           /* wider than regular keys */
-    font-size: 1rem;
+/* Shift key – wider */
+.vkb-shift {
+    width: 78px;
+    font-size: 1.05rem;
     background: rgba(255,255,255,0.05);
     border-color: rgba(255,255,255,0.18);
-    color: rgba(255,255,255,0.55);
-}
-
-/* Backspace / wide decorative keys */
-.vkb-wide {
-    width: 68px;
-}
-
-/* Shift active (uppercase input) */
-.vkb-key-shift-active {
-    background: rgba(0,255,204,0.18) !important;
-    border-color: var(--primary-color) !important;
-    color: var(--primary-color) !important;
-    box-shadow: 0 0 14px rgba(0,255,204,0.35);
+    color: rgba(255,255,255,0.50);
 }
 
 /* ==================================================
@@ -513,12 +513,12 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 18px;
 }
 
 .fguide {
     display: flex;
-    gap: 48px;
+    gap: 60px;
     justify-content: center;
     align-items: flex-end;
 }
@@ -527,19 +527,20 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .fguide-hand-label {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
+    margin-top: 6px;
 }
 
 .fguide-fingers {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: flex-end;
 }
 
@@ -547,61 +548,61 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .fguide-tip {
-    width: 28px;
-    height: 52px;
-    border-radius: 14px 14px 6px 6px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.18);
-    transition: background 0.15s, box-shadow 0.15s;
+    width: 34px;
+    height: 60px;         /* base height */
+    border-radius: 17px 17px 7px 7px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
 
-/* Finger height variation for natural hand shape */
-.fguide-left-f1  .fguide-tip, .fguide-right-f1 .fguide-tip { height: 56px; } /* index */
-.fguide-left-f2  .fguide-tip, .fguide-right-f2 .fguide-tip { height: 62px; } /* middle */
-.fguide-left-f3  .fguide-tip, .fguide-right-f3 .fguide-tip { height: 58px; } /* ring */
-.fguide-left-f4  .fguide-tip, .fguide-right-f4 .fguide-tip { height: 44px; } /* pinky */
+/* Natural finger length variation */
+.fguide-left-f1 .fguide-tip,  .fguide-right-f1 .fguide-tip { height: 68px; }  /* index  */
+.fguide-left-f2 .fguide-tip,  .fguide-right-f2 .fguide-tip { height: 76px; }  /* middle */
+.fguide-left-f3 .fguide-tip,  .fguide-right-f3 .fguide-tip { height: 70px; }  /* ring   */
+.fguide-left-f4 .fguide-tip,  .fguide-right-f4 .fguide-tip { height: 52px; }  /* pinky  */
 
-.fguide-active .fguide-tip {
-    background: var(--primary-color);
-    box-shadow: 0 0 16px rgba(0,255,204,0.55);
-    border-color: var(--primary-color);
-}
+/* Subtle finger color tints on idle tips (matches key colors) */
+/* чигчий – blue */
+.fguide-left-f4 .fguide-tip,  .fguide-right-f4 .fguide-tip { border-color: rgba(74,143,255,0.35); background: rgba(74,143,255,0.08); }
+/* ядам – red */
+.fguide-left-f3 .fguide-tip,  .fguide-right-f3 .fguide-tip { border-color: rgba(255,79,79,0.35);  background: rgba(255,79,79,0.08);  }
+/* дунд – green */
+.fguide-left-f2 .fguide-tip,  .fguide-right-f2 .fguide-tip { border-color: rgba(46,204,110,0.35); background: rgba(46,204,110,0.08); }
+/* долоовор – yellow */
+.fguide-left-f1 .fguide-tip,  .fguide-right-f1 .fguide-tip { border-color: rgba(245,196,0,0.35);  background: rgba(245,196,0,0.08);  }
+
+/* Active finger override via inline style from JS */
 
 .fguide-label {
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
     white-space: nowrap;
+    transition: color 0.15s, opacity 0.15s;
 }
 
 .fguide-hint {
-    font-size: 0.95rem;
-    color: var(--primary-color);
+    font-size: 1rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     text-align: center;
-    min-height: 1.4em;
+    min-height: 1.5em;
+    /* color set inline from JS per finger */
 }
 
-/* colour legend dots on fingers */
-.fguide-left-f4 .fguide-tip, .fguide-right-f4 .fguide-tip { border-color: rgba(120,80,200,0.5); }
-.fguide-left-f3 .fguide-tip, .fguide-right-f3 .fguide-tip { border-color: rgba(60,120,220,0.5); }
-.fguide-left-f2 .fguide-tip, .fguide-right-f2 .fguide-tip { border-color: rgba(40,170,150,0.5); }
-.fguide-left-f1 .fguide-tip, .fguide-right-f1 .fguide-tip { border-color: rgba(30,180,80,0.5);  }
-
 @media (max-width: 700px) {
-    .vkb-key          { width: 30px; height: 30px; font-size: 0.64rem; }
-    .vkb-shift-left,
-    .vkb-shift-right,
-    .vkb-wide         { width: 46px; }
-    .kb-char          { min-width: 36px; font-size: 1.7rem; }
-    #kb-viewport      { height: 64px; }
+    .vkb-key    { width: 32px; height: 32px; font-size: 0.66rem; }
+    .vkb-sym    { width: 30px; height: 28px; font-size: 0.60rem; }
+    .vkb-shift  { width: 50px; }
+    .kb-char    { min-width: 36px; font-size: 1.7rem; }
+    #kb-viewport         { height: 64px; }
     #kb-viewport::before { left: 140px; height: 50px; }
-    .fguide           { gap: 22px; }
-    .fguide-tip       { width: 22px; }
+    .fguide     { gap: 24px; }
+    .fguide-tip { width: 26px; }
 }
 
 /* ========================================
