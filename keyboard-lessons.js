@@ -1,7 +1,7 @@
 // ============================================================
 // keyboard-lessons.js
-// Stage definitions for Хурууны байрлал mode.
-// Each stage has: id, lesson (title), keys (char array)
+// Stage definitions + keyboard layout/finger mapping data
+// for Хурууны байрлал mode.
 // ============================================================
 
 window.keyboardLessons = [
@@ -48,22 +48,28 @@ window.keyboardLessons = [
 ];
 
 // ============================================================
-// Mongolian Cyrillic keyboard layout (QWERTY-mapped)
-// rows: top(number), upper, home, lower
-// Each key: { label, char(s) }
+// Standard Mongolian Cyrillic keyboard layout
+//
+// Row indices:
+//   0 = number row  (ё 1 2 3 4 5 6 7 8 9 0 - =)
+//   1 = upper row   (й ц у к е н г ш ү з х ъ)
+//   2 = home row    (ф ы в а п р о л д ж э)
+//   3 = lower row   (я ч с м и т ь б ю щ)
+//
+// Special keys (Shift) are handled separately.
 // ============================================================
 window.kbLayout = [
-    // Number row (decorative, not used in stages)
-    ["ё", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="],
-    // Upper row
+    // Row 0 – number row (shown but not part of finger assignment)
+    ["ё", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "–", "="],
+    // Row 1 – upper row
     ["й", "ц", "у", "к", "е", "н", "г", "ш", "ү", "з", "х", "ъ"],
-    // Home row
+    // Row 2 – home row
     ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
-    // Lower row
+    // Row 3 – lower row
     ["я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "щ"]
 ];
 
-// char → { row, col } position in kbLayout (rows 1-3 only, 0-indexed)
+// ── Auto-build char → position lookup ────────────────────────
 window.kbCharPos = {};
 (function buildCharPos() {
     for (let r = 1; r <= 3; r++) {
@@ -75,45 +81,55 @@ window.kbCharPos = {};
 })();
 
 // ============================================================
-// Finger assignment for each key position.
-// Finger IDs: L1=left-pinky, L2=left-ring, L3=left-middle, L4=left-index
-//             R1=right-index, R2=right-middle, R3=right-ring, R4=right-pinky
+// Finger assignment
+// Finger numbers:
+//   1 = долоовор (index)
+//   2 = дунд     (middle)
+//   3 = ядам     (ring)    ← was "хонхор", corrected to "Ядам"
+//   4 = чигчий   (pinky)
+//
+// hand: "left" | "right"
 // ============================================================
 window.kbFingerMap = {
-    // Upper row (row=1): й ц у к е н г ш ү з х ъ
-    "1-0":  { hand: "left",  finger: 4, name: "Зүүн гарын чигчий" },
-    "1-1":  { hand: "left",  finger: 3, name: "Зүүн гарын хонхор" },
-    "1-2":  { hand: "left",  finger: 2, name: "Зүүн гарын дунд" },
-    "1-3":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" },
-    "1-4":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" },
-    "1-5":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },
-    "1-6":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },
-    "1-7":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },
-    "1-8":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },
-    "1-9":  { hand: "right", finger: 3, name: "Баруун гарын хонхор" },
-    "1-10": { hand: "right", finger: 4, name: "Баруун гарын чигчий" },
-    "1-11": { hand: "right", finger: 4, name: "Баруун гарын чигчий" },
-    // Home row (row=2): ф ы в а п р о л д ж э
-    "2-0":  { hand: "left",  finger: 4, name: "Зүүн гарын чигчий" },
-    "2-1":  { hand: "left",  finger: 3, name: "Зүүн гарын хонхор" },
-    "2-2":  { hand: "left",  finger: 2, name: "Зүүн гарын дунд" },
-    "2-3":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" },
-    "2-4":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" },
-    "2-5":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },
-    "2-6":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },
-    "2-7":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },
-    "2-8":  { hand: "right", finger: 3, name: "Баруун гарын хонхор" },
-    "2-9":  { hand: "right", finger: 3, name: "Баруун гарын хонхор" },
-    "2-10": { hand: "right", finger: 4, name: "Баруун гарын чигчий" },
-    // Lower row (row=3): я ч с м и т ь б ю щ
-    "3-0":  { hand: "left",  finger: 4, name: "Зүүн гарын чигчий" },
-    "3-1":  { hand: "left",  finger: 3, name: "Зүүн гарын хонхор" },
-    "3-2":  { hand: "left",  finger: 2, name: "Зүүн гарын дунд" },
-    "3-3":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" },
-    "3-4":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" },
-    "3-5":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },
-    "3-6":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },
-    "3-7":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },
-    "3-8":  { hand: "right", finger: 3, name: "Баруун гарын хонхор" },
-    "3-9":  { hand: "right", finger: 4, name: "Баруун гарын чигчий" }
+    // ── Row 1 (upper): й ц у к е н г ш ү з х ъ ──────────────
+    //  idx: 0  1  2  3  4  5  6  7  8  9 10 11
+    "1-0":  { hand: "left",  finger: 4, name: "Зүүн гарын чигчий" },   // й
+    "1-1":  { hand: "left",  finger: 3, name: "Зүүн гарын ядам" },     // ц
+    "1-2":  { hand: "left",  finger: 2, name: "Зүүн гарын дунд" },     // у
+    "1-3":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" }, // к
+    "1-4":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" }, // е
+    "1-5":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },// н
+    "1-6":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },// г
+    "1-7":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },   // ш
+    "1-8":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },   // ү
+    "1-9":  { hand: "right", finger: 3, name: "Баруун гарын ядам" },   // з
+    "1-10": { hand: "right", finger: 4, name: "Баруун гарын чигчий" }, // х
+    "1-11": { hand: "right", finger: 4, name: "Баруун гарын чигчий" }, // ъ
+
+    // ── Row 2 (home): ф ы в а п р о л д ж э ─────────────────
+    //  idx: 0  1  2  3  4  5  6  7  8  9 10
+    "2-0":  { hand: "left",  finger: 4, name: "Зүүн гарын чигчий" },   // ф
+    "2-1":  { hand: "left",  finger: 3, name: "Зүүн гарын ядам" },     // ы
+    "2-2":  { hand: "left",  finger: 2, name: "Зүүн гарын дунд" },     // в
+    "2-3":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" }, // а
+    "2-4":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" }, // п
+    "2-5":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },// р
+    "2-6":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },// о
+    "2-7":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },   // л
+    "2-8":  { hand: "right", finger: 3, name: "Баруун гарын ядам" },   // д
+    "2-9":  { hand: "right", finger: 3, name: "Баруун гарын ядам" },   // ж  ← ядам stretches
+    "2-10": { hand: "right", finger: 4, name: "Баруун гарын чигчий" }, // э
+
+    // ── Row 3 (lower): я ч с м и т ь б ю щ ──────────────────
+    //  idx: 0  1  2  3  4  5  6  7  8  9
+    "3-0":  { hand: "left",  finger: 4, name: "Зүүн гарын чигчий" },   // я
+    "3-1":  { hand: "left",  finger: 3, name: "Зүүн гарын ядам" },     // ч
+    "3-2":  { hand: "left",  finger: 2, name: "Зүүн гарын дунд" },     // с
+    "3-3":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" }, // м
+    "3-4":  { hand: "left",  finger: 1, name: "Зүүн гарын долоовор" }, // и
+    "3-5":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },// т
+    "3-6":  { hand: "right", finger: 1, name: "Баруун гарын долоовор" },// ь
+    "3-7":  { hand: "right", finger: 2, name: "Баруун гарын дунд" },   // б
+    "3-8":  { hand: "right", finger: 3, name: "Баруун гарын ядам" },   // ю
+    "3-9":  { hand: "right", finger: 4, name: "Баруун гарын чигчий" }  // щ
 };
