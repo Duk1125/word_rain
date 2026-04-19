@@ -311,7 +311,8 @@ header {
 #keyboard-display-area {
     flex: 0 0 auto;
     width: 100%;
-    padding: 44px 20px 20px; /* push text slider further from header */
+    padding: 44px 20px 20px;
+    /* push text slider further from header */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -319,7 +320,9 @@ header {
 }
 
 /* OLD patterns — hidden in kbd mode */
-.kb-pattern { display: none; }
+.kb-pattern {
+    display: none;
+}
 
 #keyboard-hint-area {
     flex: 1 1 auto;
@@ -329,7 +332,8 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;   /* vertically center so it fills the gap */
+    justify-content: center;
+    /* vertically center so it fills the gap */
     gap: 26px;
     overflow-y: auto;
     border-top: 1px solid var(--surface-border);
@@ -345,7 +349,7 @@ header {
     overflow: hidden;
     position: relative;
     border-radius: 14px;
-    background: rgba(0,0,0,0.35);
+    background: rgba(0, 0, 0, 0.35);
     border: 2px solid var(--surface-border);
 }
 
@@ -353,7 +357,8 @@ header {
 #kb-viewport::before {
     content: '';
     position: absolute;
-    left: 140px;  /* match ANCHOR_LEFT in JS */
+    left: 140px;
+    /* match ANCHOR_LEFT in JS */
     top: 10px;
     width: 2px;
     height: 60px;
@@ -376,7 +381,8 @@ header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 44px;    /* must match CHAR_PX in keyboard-mode.js */
+    min-width: 44px;
+    /* must match CHAR_PX in keyboard-mode.js */
     height: 64px;
     font-size: 2.2rem;
     font-family: 'Outfit', monospace;
@@ -388,24 +394,24 @@ header {
 }
 
 .kb-char.untyped {
-    color: rgba(255,255,255,0.45);
+    color: rgba(255, 255, 255, 0.45);
 }
 
 .kb-char.correct {
     color: #4dffc0;
-    text-shadow: 0 0 10px rgba(77,255,192,0.5);
+    text-shadow: 0 0 10px rgba(77, 255, 192, 0.5);
 }
 
 .kb-char.incorrect {
     color: var(--danger-color);
-    text-shadow: 0 0 10px rgba(255,74,74,0.5);
+    text-shadow: 0 0 10px rgba(255, 74, 74, 0.5);
 }
 
 .kb-char.kb-active {
     color: #ffffff;
-    background: rgba(0,255,204,0.14);
+    background: rgba(0, 255, 204, 0.14);
     border-radius: 8px;
-    box-shadow: 0 0 18px rgba(0,255,204,0.35), inset 0 0 0 2px var(--primary-color);
+    box-shadow: 0 0 18px rgba(0, 255, 204, 0.35), inset 0 0 0 2px var(--primary-color);
     transform: scaleY(1.08);
 }
 
@@ -414,7 +420,7 @@ header {
     width: 100%;
     max-width: 900px;
     height: 5px;
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 3px;
     overflow: hidden;
 }
@@ -452,9 +458,9 @@ header {
     font-size: 0.92rem;
     font-weight: 700;
     font-family: var(--font-heading);
-    border: 1px solid rgba(255,255,255,0.14);
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.65);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.65);
     transition: background 0.1s, color 0.1s, box-shadow 0.1s, transform 0.07s;
     user-select: none;
     cursor: default;
@@ -463,47 +469,54 @@ header {
 
 /* ── Finger colour coding: चигчий=blue, ядам=red, дунд=green, долоовор=yellow ── */
 /* чигчий (pinky, f4) – blue */
-.vkb-left-f4,  .vkb-right-f4  {
-    background: rgba(74,143,255,0.14);
-    border-color: rgba(74,143,255,0.36);
-    color: rgba(184,210,255,0.75);
+.vkb-left-f4,
+.vkb-right-f4 {
+    background: rgba(74, 143, 255, 0.14);
+    border-color: rgba(74, 143, 255, 0.36);
+    color: rgba(184, 210, 255, 0.75);
 }
+
 /* ядам (ring, f3) – red */
-.vkb-left-f3,  .vkb-right-f3  {
-    background: rgba(255,79,79,0.14);
-    border-color: rgba(255,79,79,0.36);
-    color: rgba(255,180,180,0.75);
+.vkb-left-f3,
+.vkb-right-f3 {
+    background: rgba(255, 79, 79, 0.14);
+    border-color: rgba(255, 79, 79, 0.36);
+    color: rgba(255, 180, 180, 0.75);
 }
+
 /* дунд (middle, f2) – green */
-.vkb-left-f2,  .vkb-right-f2  {
-    background: rgba(46,204,110,0.14);
-    border-color: rgba(46,204,110,0.36);
-    color: rgba(150,255,200,0.75);
+.vkb-left-f2,
+.vkb-right-f2 {
+    background: rgba(46, 204, 110, 0.14);
+    border-color: rgba(46, 204, 110, 0.36);
+    color: rgba(150, 255, 200, 0.75);
 }
+
 /* долоовор (index, f1) – yellow */
-.vkb-left-f1,  .vkb-right-f1  {
-    background: rgba(245,196,0,0.14);
-    border-color: rgba(245,196,0,0.36);
-    color: rgba(255,235,120,0.75);
+.vkb-left-f1,
+.vkb-right-f1 {
+    background: rgba(245, 196, 0, 0.14);
+    border-color: rgba(245, 196, 0, 0.36);
+    color: rgba(255, 235, 120, 0.75);
 }
 
 /* Symbol row – dimmed */
 .vkb-sym {
-    background: rgba(255,255,255,0.03);
-    border-color: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.30);
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.30);
     font-size: 0.76rem;
-    width: 48px;
-    height: 42px;
+    width: 52px;
+    height: 52px;
 }
 
 /* Shift key – wider */
 .vkb-shift {
     width: 78px;
     font-size: 1.05rem;
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.18);
-    color: rgba(255,255,255,0.50);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.50);
 }
 
 /* ==================================================
@@ -553,28 +566,68 @@ header {
 
 .fguide-tip {
     width: 34px;
-    height: 60px;         /* base height */
+    height: 60px;
+    /* base height */
     border-radius: 17px 17px 7px 7px;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
 
 /* Natural finger length variation */
-.fguide-left-f1 .fguide-tip,  .fguide-right-f1 .fguide-tip { height: 68px; }  /* index  */
-.fguide-left-f2 .fguide-tip,  .fguide-right-f2 .fguide-tip { height: 76px; }  /* middle */
-.fguide-left-f3 .fguide-tip,  .fguide-right-f3 .fguide-tip { height: 70px; }  /* ring   */
-.fguide-left-f4 .fguide-tip,  .fguide-right-f4 .fguide-tip { height: 52px; }  /* pinky  */
+.fguide-left-f1 .fguide-tip,
+.fguide-right-f1 .fguide-tip {
+    height: 68px;
+}
+
+/* index  */
+.fguide-left-f2 .fguide-tip,
+.fguide-right-f2 .fguide-tip {
+    height: 76px;
+}
+
+/* middle */
+.fguide-left-f3 .fguide-tip,
+.fguide-right-f3 .fguide-tip {
+    height: 70px;
+}
+
+/* ring   */
+.fguide-left-f4 .fguide-tip,
+.fguide-right-f4 .fguide-tip {
+    height: 52px;
+}
+
+/* pinky  */
 
 /* Subtle finger color tints on idle tips (matches key colors) */
 /* чигчий – blue */
-.fguide-left-f4 .fguide-tip,  .fguide-right-f4 .fguide-tip { border-color: rgba(74,143,255,0.35); background: rgba(74,143,255,0.08); }
+.fguide-left-f4 .fguide-tip,
+.fguide-right-f4 .fguide-tip {
+    border-color: rgba(74, 143, 255, 0.35);
+    background: rgba(74, 143, 255, 0.08);
+}
+
 /* ядам – red */
-.fguide-left-f3 .fguide-tip,  .fguide-right-f3 .fguide-tip { border-color: rgba(255,79,79,0.35);  background: rgba(255,79,79,0.08);  }
+.fguide-left-f3 .fguide-tip,
+.fguide-right-f3 .fguide-tip {
+    border-color: rgba(255, 79, 79, 0.35);
+    background: rgba(255, 79, 79, 0.08);
+}
+
 /* дунд – green */
-.fguide-left-f2 .fguide-tip,  .fguide-right-f2 .fguide-tip { border-color: rgba(46,204,110,0.35); background: rgba(46,204,110,0.08); }
+.fguide-left-f2 .fguide-tip,
+.fguide-right-f2 .fguide-tip {
+    border-color: rgba(46, 204, 110, 0.35);
+    background: rgba(46, 204, 110, 0.08);
+}
+
 /* долоовор – yellow */
-.fguide-left-f1 .fguide-tip,  .fguide-right-f1 .fguide-tip { border-color: rgba(245,196,0,0.35);  background: rgba(245,196,0,0.08);  }
+.fguide-left-f1 .fguide-tip,
+.fguide-right-f1 .fguide-tip {
+    border-color: rgba(245, 196, 0, 0.35);
+    background: rgba(245, 196, 0, 0.08);
+}
 
 /* Active finger override via inline style from JS */
 
@@ -595,14 +648,43 @@ header {
 }
 
 @media (max-width: 700px) {
-    .vkb-key    { width: 32px; height: 32px; font-size: 0.66rem; }
-    .vkb-sym    { width: 30px; height: 28px; font-size: 0.60rem; }
-    .vkb-shift  { width: 50px; }
-    .kb-char    { min-width: 36px; font-size: 1.7rem; }
-    #kb-viewport         { height: 64px; }
-    #kb-viewport::before { left: 140px; height: 50px; }
-    .fguide     { gap: 24px; }
-    .fguide-tip { width: 26px; }
+    .vkb-key {
+        width: 32px;
+        height: 32px;
+        font-size: 0.66rem;
+    }
+
+    .vkb-sym {
+        width: 30px;
+        height: 28px;
+        font-size: 0.60rem;
+    }
+
+    .vkb-shift {
+        width: 50px;
+    }
+
+    .kb-char {
+        min-width: 36px;
+        font-size: 1.7rem;
+    }
+
+    #kb-viewport {
+        height: 64px;
+    }
+
+    #kb-viewport::before {
+        left: 140px;
+        height: 50px;
+    }
+
+    .fguide {
+        gap: 24px;
+    }
+
+    .fguide-tip {
+        width: 26px;
+    }
 }
 
 /* ========================================
