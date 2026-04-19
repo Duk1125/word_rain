@@ -1,35 +1,30 @@
 /**
  * Main Application Controller
- * Handles routing, user session, settings (with mode-based font-size toggle),
- * pause modals for all three modes, and bridging game modes.
+ * Handles routing, user session, settings, and bridging game modes with shared UI (leaderboards, analytics).
  */
 
 const AppController = (function() {
-    let username  = '';
-    let playerId  = '';
-
-    // Track which mode is currently active
-    // 'keyboard' | 'paragraph' | 'word-rain' | null
-    let activeMode = null;
+    // Globals
+    let username = '';
+    let playerId = '';
 
     // Screens & Containers
-    const startScreen       = document.getElementById('start-screen');
-    const usernameScreen    = document.getElementById('username-screen');
+    const startScreen = document.getElementById('start-screen');
+    const usernameScreen = document.getElementById('username-screen');
     const wordRainContainer = document.getElementById('game-container');
     const paragraphContainer = document.getElementById('paragraph-container');
     const keyboardContainer = document.getElementById('keyboard-container');
 
-    const prepKeyboard  = document.getElementById('prep-keyboard');
-    const prepWordRain  = document.getElementById('prep-word-rain');
+    const prepKeyboard = document.getElementById('prep-keyboard');
+    const prepWordRain = document.getElementById('prep-word-rain');
     const prepParagraph = document.getElementById('prep-paragraph');
 
-    const usernameInput  = document.getElementById('username-input');
-    const settingsModal  = document.getElementById('settings-modal');
+    // UI Elements
+    const usernameInput = document.getElementById('username-input');
+    const settingsModal = document.getElementById('settings-modal');
     const leaderboardModal = document.getElementById('leaderboard-modal');
-
-    // Settings size group — hidden for keyboard/paragraph modes
-    const settingsSizeGroup = document.getElementById('settings-size-group');
-
+    
+    // UUID Generator
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -41,29 +36,32 @@ const AppController = (function() {
         checkUsername();
         setupEventListeners();
         loadSettings();
-
-        if (window.WordRain) {
+        
+        // Init Modes
+        if(window.WordRain) {
             window.WordRain.init({
-                gameArea:     document.getElementById('game-area'),
+                gameArea: document.getElementById('game-area'),
                 scoreElement: document.getElementById('score'),
                 livesElement: document.getElementById('lives-container'),
-                wordInput:    document.getElementById('word-input')
+                wordInput: document.getElementById('word-input')
             });
         }
-
-        if (window.ParagraphMode) {
+        
+        if(window.ParagraphMode) {
             window.ParagraphMode.init({
-                container:   paragraphContainer,
+                container: paragraphContainer,
                 textDisplay: document.getElementById('paragraph-display-area'),
-                stats:       document.getElementById('paragraph-stats')
+                input: document.getElementById('paragraph-input'),
+                stats: document.getElementById('paragraph-stats')
             });
         }
 
-        if (window.KeyboardMode) {
+        if(window.KeyboardMode) {
             window.KeyboardMode.init({
-                container:       keyboardContainer,
-                patternDisplay:  document.getElementById('keyboard-display-area'),
-                stats:           document.getElementById('keyboard-stats'),
+                container: keyboardContainer,
+                patternDisplay: document.getElementById('keyboard-display-area'),
+                input: document.getElementById('keyboard-input'),
+                stats: document.getElementById('keyboard-stats'),
                 keyboardDisplay: document.getElementById('keyboard-hint-area')
             });
         }
@@ -81,10 +79,10 @@ const AppController = (function() {
         if (savedUser) {
             username = savedUser;
             const curPlayerEl = document.getElementById('current-player');
-            if (curPlayerEl) curPlayerEl.textContent = username;
-            if (usernameInput) usernameInput.value = username;
+            if(curPlayerEl) curPlayerEl.textContent = username;
+            if(usernameInput) usernameInput.value = username;
         }
-
+        
         showScreen(usernameScreen);
         usernameInput.focus();
     }
@@ -95,7 +93,7 @@ const AppController = (function() {
             username = name;
             localStorage.setItem('acidRainUsername', username);
             const curPlayerEl = document.getElementById('current-player');
-            if (curPlayerEl) curPlayerEl.textContent = username;
+            if(curPlayerEl) curPlayerEl.textContent = username;
             showScreen(startScreen);
         } else {
             alert('Please enter a name with at least 2 characters.');
@@ -104,58 +102,54 @@ const AppController = (function() {
 
     function showScreen(screenEl) {
         [
-            startScreen, usernameScreen,
+            startScreen, usernameScreen, 
             wordRainContainer, paragraphContainer, keyboardContainer,
             prepKeyboard, prepWordRain, prepParagraph
-        ].forEach(el => { if (el) el.classList.add('hidden'); });
-        if (screenEl) screenEl.classList.remove('hidden');
-    }
-
-    // Navigate to start screen (exposed for pause modals inside mode JS)
-    function goHome() {
-        if (window.WordRain)      window.WordRain.stop();
-        if (window.ParagraphMode) window.ParagraphMode.stop();
-        if (window.KeyboardMode)  window.KeyboardMode.stop();
-        activeMode = null;
-        showScreen(startScreen);
-    }
-
-    // Open settings with mode-aware font-size toggle
-    function openSettingsForMode(mode) {
-        // mode: 'keyboard' | 'paragraph' | 'word-rain'
-        if (settingsSizeGroup) {
-            settingsSizeGroup.style.display = (mode === 'word-rain') ? '' : 'none';
-        }
-        settingsModal.classList.remove('hidden');
+        ].forEach(el => {
+            if(el) el.classList.add('hidden');
+        });
+        if(screenEl) screenEl.classList.remove('hidden');
     }
 
     function setupEventListeners() {
         // Username
         document.getElementById('username-submit-btn').addEventListener('click', submitUsername);
-        usernameInput.addEventListener('keypress', e => { if (e.key === 'Enter') submitUsername(); });
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitUsername();
+        });
 
-        // Mode navigation
+        // Mode Navigation Routing
         document.querySelectorAll('.prep-mode-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', (e) => {
                 const mode = e.target.closest('.mode-card').dataset.mode;
-                if (mode === 'word-rain')  showScreen(prepWordRain);
-                else if (mode === 'paragraph') showScreen(prepParagraph);
-                else if (mode === 'keyboard')  showScreen(prepKeyboard);
+                if(mode === 'word-rain') {
+                    showScreen(prepWordRain);
+                } else if(mode === 'paragraph') {
+                    showScreen(prepParagraph);
+                } else if(mode === 'keyboard') {
+                    showScreen(prepKeyboard);
+                }
             });
         });
 
         document.querySelectorAll('.back-to-menu-btn').forEach(btn => {
-            btn.addEventListener('click', () => showScreen(startScreen));
+            btn.addEventListener('click', () => {
+                showScreen(startScreen);
+            });
         });
 
-        // Word Rain difficulty
-        let selectedSpeed = 1.4, selectedSpawn = 1.4, wrDiffKey = 'level2';
+        // Word Rain Difficulty logic inside Prep Screen
+        let selectedSpeed = 1.4;
+        let selectedSpawn = 1.4;
+        let wrDiffKey = 'level2';
+
         document.querySelectorAll('#prep-word-rain .diff-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', (e) => {
                 document.querySelectorAll('#prep-word-rain .diff-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
                 selectedSpeed = parseFloat(e.target.dataset.speed);
                 selectedSpawn = parseFloat(e.target.dataset.spawn);
+                
                 if (selectedSpeed === 1.0) wrDiffKey = 'level1';
                 else if (selectedSpeed === 1.4) wrDiffKey = 'level2';
                 else if (selectedSpeed === 2.0) wrDiffKey = 'level3';
@@ -163,101 +157,72 @@ const AppController = (function() {
             });
         });
 
-        // Keyboard stage
-        let selectedKeyboardStage = 0;
+        // Keyboard Stage logic inside Prep Screen
+        let selectedKeyboardStage = 0; // Default to Stage 0 (1-р шат)
+        
         document.querySelectorAll('#keyboard-stage-select .diff-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', (e) => {
                 document.querySelectorAll('#keyboard-stage-select .diff-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
                 selectedKeyboardStage = parseInt(e.target.dataset.stage, 10);
             });
         });
 
-        // Start buttons
         document.querySelectorAll('.real-start-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', (e) => {
                 const mode = e.target.dataset.mode;
-                if (mode === 'word-rain') {
-                    activeMode = 'word-rain';
+                if(mode === 'word-rain') {
                     showScreen(wordRainContainer);
                     window.WordRain.start(selectedSpeed, selectedSpawn, wrDiffKey);
-                } else if (mode === 'paragraph') {
-                    activeMode = 'paragraph';
+                } else if(mode === 'paragraph') {
                     showScreen(paragraphContainer);
                     window.ParagraphMode.startRandom();
-                } else if (mode === 'keyboard') {
-                    activeMode = 'keyboard';
+                } else if(mode === 'keyboard') {
                     showScreen(keyboardContainer);
                     window.KeyboardMode.start(selectedKeyboardStage);
                 }
             });
         });
 
-        // ── Pause buttons ──────────────────────────────────────
-        // Keyboard pause btn
-        const kbPauseBtn = document.getElementById('kb-pause-btn');
-        if (kbPauseBtn) {
-            kbPauseBtn.addEventListener('click', () => {
-                if (window.KeyboardMode) window.KeyboardMode.showPauseModal();
+        // Global Returns from active game
+        document.querySelectorAll('.menu-return-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(window.WordRain) window.WordRain.stop();
+                if(window.ParagraphMode) window.ParagraphMode.stop();
+                if(window.KeyboardMode) window.KeyboardMode.stop();
+                showScreen(startScreen);
+            });
+        });
+
+        // Existing pause logic for Word Rain (Optional implementation mapping)
+        const pauseBtn = document.getElementById('pause-btn');
+        if(pauseBtn) {
+            pauseBtn.addEventListener('click', () => {
+                if(window.WordRain) {
+                    const isPaused = window.WordRain.togglePause();
+                    pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
+                }
             });
         }
 
-        // Paragraph pause btn
-        const paraPauseBtn = document.getElementById('para-pause-btn');
-        if (paraPauseBtn) {
-            paraPauseBtn.addEventListener('click', () => {
-                if (window.ParagraphMode) window.ParagraphMode.showPauseModal();
-            });
-        }
-
-        // Word Rain pause btn — uses its own modal (wr-pause-modal in HTML)
-        const wrPauseBtn = document.getElementById('pause-btn');
-        if (wrPauseBtn) {
-            wrPauseBtn.addEventListener('click', () => showWordRainPauseModal());
-        }
-
-        // Word Rain pause modal buttons
-        const wrPauseModal = document.getElementById('wr-pause-modal');
-        if (wrPauseModal) {
-            document.getElementById('wrp-resume').addEventListener('click', () => {
-                wrPauseModal.style.display = 'none';
-                wrPauseModal.classList.add('hidden');
-                if (window.WordRain) window.WordRain.togglePause(); // un-pause
-                wrPauseBtn.textContent = '⏸️';
-            });
-            document.getElementById('wrp-restart').addEventListener('click', () => {
-                wrPauseModal.style.display = 'none';
-                wrPauseModal.classList.add('hidden');
-                if (window.WordRain) window.WordRain.start(selectedSpeed, selectedSpawn, wrDiffKey);
-                wrPauseBtn.textContent = '⏸️';
-            });
-            document.getElementById('wrp-home').addEventListener('click', () => {
-                wrPauseModal.style.display = 'none';
-                wrPauseModal.classList.add('hidden');
-                goHome();
-            });
-            document.getElementById('wrp-settings').addEventListener('click', () => {
-                openSettingsForMode('word-rain');
-            });
-        }
-
-        // Leaderboard
-        const prepLbBtn = document.getElementById('prep-show-leaderboard-btn');
-        if (prepLbBtn) {
-            prepLbBtn.addEventListener('click', () => {
-                leaderboardModal.classList.remove('hidden');
+        // Leaderboard modal specific (from game over screen / prep screen)
+        if(document.getElementById('prep-show-leaderboard-btn')) {
+            document.getElementById('prep-show-leaderboard-btn').addEventListener('click', () => {
+                document.getElementById('leaderboard-modal').classList.remove('hidden');
+                // Ensure the correct tab is highlighted
                 document.querySelectorAll('.tab-btn').forEach(b => {
                     b.classList.toggle('active', b.dataset.tab === wrDiffKey);
                 });
                 renderLeaderboard(wrDiffKey);
             });
         }
-        const closeLb = document.getElementById('close-leaderboard');
-        if (closeLb) {
-            closeLb.addEventListener('click', () => leaderboardModal.classList.add('hidden'));
+        if(document.getElementById('close-leaderboard')) {
+            document.getElementById('close-leaderboard').addEventListener('click', () => {
+                document.getElementById('leaderboard-modal').classList.add('hidden');
+            });
         }
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', (e) => {
                 const tab = e.target.dataset.tab;
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
@@ -265,18 +230,16 @@ const AppController = (function() {
             });
         });
 
-        // Settings buttons on PREP screens (with mode-awareness)
+        // Settings (mapped to all bottom-left icons)
         document.querySelectorAll('.settings-btn-bottom-left').forEach(btn => {
-            btn.addEventListener('click', e => {
-                const mode = e.currentTarget.dataset.settingsMode || activeMode || 'word-rain';
-                openSettingsForMode(mode);
+            btn.addEventListener('click', () => {
+                settingsModal.classList.remove('hidden');
             });
         });
-
         document.getElementById('close-settings').addEventListener('click', () => {
             settingsModal.classList.add('hidden');
         });
-
+        
         document.querySelectorAll('.size-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 currentFontSize = btn.dataset.size;
@@ -296,52 +259,35 @@ const AppController = (function() {
         });
     }
 
-    // ── Word Rain pause modal helper ──────────────────────────
-    function showWordRainPauseModal() {
-        const modal    = document.getElementById('wr-pause-modal');
-        const pauseBtn = document.getElementById('pause-btn');
-        if (!modal) return;
-        const willPause = window.WordRain ? window.WordRain.togglePause() : true;
-        if (willPause) {
-            modal.style.display = 'flex';
-            modal.classList.remove('hidden');
-            if (pauseBtn) pauseBtn.textContent = '▶️';
-        } else {
-            modal.style.display = 'none';
-            modal.classList.add('hidden');
-            if (pauseBtn) pauseBtn.textContent = '⏸️';
-        }
-    }
-
     // --- Settings Logic ---
     let currentFontSize = 'normal';
-    let currentTheme    = 'default';
+    let currentTheme = 'default';
     const fontSizes = {
-        'very-small': '1.4rem', 'small': '1.8rem', 'normal': '2.2rem',
-        'large': '2.6rem', 'very-large': '3rem'
+        'very-small': '1.4rem', 'small': '1.8rem', 'normal': '2.2rem', 'large': '2.6rem', 'very-large': '3rem'
     };
     const themes = {
-        'default':       { bg: '#0a0a12', gradient: 'radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a12 100%)', text: '#ffffff' },
+        'default': { bg: '#0a0a12', gradient: 'radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a12 100%)', text: '#ffffff' },
         'high-contrast': { bg: '#1b3a24', gradient: 'none', text: '#ffffff' },
-        'warm':          { bg: '#2b2b2b', gradient: 'none', text: '#F5DEB3' },
-        'deep-blue':     { bg: '#1a1a3e', gradient: 'radial-gradient(circle at 50% 50%, #2a2a5e 0%, #1a1a3e 100%)', text: '#ffffff' }
+        'warm': { bg: '#2b2b2b', gradient: 'none', text: '#F5DEB3' },
+        'deep-blue': { bg: '#1a1a3e', gradient: 'radial-gradient(circle at 50% 50%, #2a2a5e 0%, #1a1a3e 100%)', text: '#ffffff' }
     };
 
     function loadSettings() {
-        const savedSize  = localStorage.getItem('acidRainFontSize');
+        const savedSize = localStorage.getItem('acidRainFontSize');
         const savedTheme = localStorage.getItem('acidRainTheme');
-        if (savedSize  && fontSizes[savedSize])   currentFontSize = savedSize;
-        if (savedTheme && themes[savedTheme])       currentTheme    = savedTheme;
+        if (savedSize && fontSizes[savedSize]) currentFontSize = savedSize;
+        if (savedTheme && themes[savedTheme]) currentTheme = savedTheme;
         applySettings();
         updateSettingsUI();
     }
 
     function applySettings() {
-        document.documentElement.style.setProperty('--game-font-size', fontSizes[currentFontSize]);
+        const sizeValue = fontSizes[currentFontSize];
+        document.documentElement.style.setProperty('--game-font-size', sizeValue);
         const theme = themes[currentTheme];
-        document.documentElement.style.setProperty('--game-bg-color',     theme.bg);
-        document.documentElement.style.setProperty('--game-bg-gradient',  theme.gradient);
-        document.documentElement.style.setProperty('--game-text-color',   theme.text);
+        document.documentElement.style.setProperty('--game-bg-color', theme.bg);
+        document.documentElement.style.setProperty('--game-bg-gradient', theme.gradient);
+        document.documentElement.style.setProperty('--game-text-color', theme.text);
     }
 
     function updateSettingsUI() {
@@ -353,23 +299,15 @@ const AppController = (function() {
         });
     }
 
-    // --- Analytics hooks ---
+    // --- Leaderboard & Analytical Hooks ---
     async function handleWordRainEnd(score, difficulty, statsData) {
+        // Run async leaderboard save, but don't block UI immediately
         saveScoreToLeaderboard(score, difficulty).then(rank => {
-            if (rank > 0) statsData["Дэлхийн зэрэглэл"] = "#" + rank;
-            showGameStatsMenu("Үгэн бороо", statsData, () => {
-                const btn = document.querySelector('#prep-word-rain .real-start-btn');
-                // Re-get selected speed/spawn from DOM
-                const selBtn = document.querySelector('#prep-word-rain .diff-btn.selected');
-                const spd = selBtn ? parseFloat(selBtn.dataset.speed) : 1.4;
-                const spw = selBtn ? parseFloat(selBtn.dataset.spawn) : 1.4;
-                let dk = 'level2';
-                if (spd === 1.0) dk = 'level1';
-                else if (spd === 2.0) dk = 'level3';
-                else if (spd === 2.8) dk = 'level4';
-                window.WordRain.start(spd, spw, dk);
-            });
-        }).catch(() => {
+            if (rank > 0) {
+                statsData["Дэлхийн зэрэглэл"] = "#" + rank;
+            }
+            showGameStatsMenu("Үгэн бороо", statsData, () => window.WordRain.start());
+        }).catch(err => {
             showGameStatsMenu("Үгэн бороо", statsData, () => window.WordRain.start());
         });
     }
@@ -378,29 +316,36 @@ const AppController = (function() {
         showGameStatsMenu("Эх бичих", statsData, () => window.ParagraphMode.startRandom());
     }
 
-    // handleKeyboardEnd is no longer used (KeyboardMode shows its own result modal)
     function handleKeyboardEnd(statsData) {
-        // kept for safety — keyboard mode now shows its own inline result modal
+        // Get the stage that was last played so restart works correctly
+        const lastStage = (window.KeyboardMode && window.KeyboardMode._lastStage !== undefined)
+            ? window.KeyboardMode._lastStage : 0;
+        showGameStatsMenu("Хурууны байрлал", statsData, () => {
+            if (window.KeyboardMode) window.KeyboardMode.start(lastStage);
+        });
     }
 
     function showGameStatsMenu(modeName, statsData, restartCallback) {
         window.TypingAnalytics.showResultsModal(modeName, statsData, {
             restart: restartCallback,
-            menu:    () => goHome()
+            menu: () => showScreen(startScreen)
         });
     }
 
-    // --- Leaderboard ---
+    // --- Legacy Leaderboard Logic ---
     async function getLeaderboard(difficulty) {
         if (typeof supabaseClient !== 'undefined') {
             try {
                 const { data, error } = await supabaseClient
-                    .from('leaderboards').select('*')
-                    .eq('difficulty', difficulty).order('score', { ascending: false }).limit(50);
+                    .from('leaderboards')
+                    .select('*')
+                    .eq('difficulty', difficulty)
+                    .order('score', { ascending: false })
+                    .limit(50);
                 if (error) throw error;
                 return data;
             } catch (error) {
-                console.warn("Supabase read failed:", error);
+                console.warn("Supabase read failed, using localStorage:", error);
             }
         }
         const data = localStorage.getItem(`leaderboard_${difficulty}`);
@@ -408,62 +353,89 @@ const AppController = (function() {
     }
 
     async function saveScoreToLeaderboard(score, difficulty) {
-        if (score <= 0) return -1;
+        if(score <= 0) return -1;
+        const date = new Date().toLocaleDateString();
         const timestamp = Date.now();
-        const newEntry  = { player_id: playerId, name: username, score, difficulty, date: new Date().toLocaleDateString(), timestamp };
+        const newEntry = {
+            player_id: playerId,
+            name: username,
+            score: score,
+            difficulty: difficulty,
+            date: date,
+            timestamp: timestamp
+        };
 
         if (typeof supabaseClient !== 'undefined') {
             try {
                 const { data: existingData, error: fetchError } = await supabaseClient
                     .from('leaderboards').select('score').eq('player_id', playerId).eq('difficulty', difficulty);
                 if (fetchError) throw fetchError;
+                
                 const existingScore = existingData && existingData.length > 0 ? existingData[0].score : -1;
+
                 if (score > existingScore) {
-                    const { error: upsertError } = await supabaseClient.from('leaderboards').upsert({
-                        player_id: playerId, name: username, score, difficulty,
-                        created_at: new Date().toISOString()
-                    }, { onConflict: 'player_id, difficulty' });
+                    const { error: upsertError } = await supabaseClient
+                        .from('leaderboards')
+                        .upsert({
+                            player_id: playerId,
+                            name: username,
+                            score: score,
+                            difficulty: difficulty,
+                            created_at: new Date().toISOString()
+                        }, { onConflict: 'player_id, difficulty' });
                     if (upsertError) throw upsertError;
-                    const { data: lb, error: rankError } = await supabaseClient.from('leaderboards')
-                        .select('player_id, score').eq('difficulty', difficulty).order('score', { ascending: false }).limit(50);
+
+                    const { data: leaderboard, error: rankError } = await supabaseClient
+                        .from('leaderboards').select('player_id, score').eq('difficulty', difficulty).order('score', { ascending: false }).limit(50);
                     if (rankError) throw rankError;
-                    const rank = lb.findIndex(e => e.player_id === playerId && e.score === score) + 1;
+
+                    const rank = leaderboard.findIndex(entry => entry.player_id === playerId && entry.score === score) + 1;
                     return rank > 0 ? rank : -1;
-                }
-                return -1;
+                } else return -1;
             } catch (error) {
-                console.warn("Supabase save failed:", error);
+                console.warn("Supabase save failed, using localStorage:", error);
             }
         }
-        let lb = JSON.parse(localStorage.getItem(`leaderboard_${difficulty}`) || '[]');
-        const existing = lb.find(e => e.player_id === playerId || e.name === username);
-        if (!existing || score > existing.score) {
-            lb = lb.filter(e => e.player_id !== playerId && e.name !== username);
-            lb.push(newEntry);
-            lb.sort((a, b) => b.score - a.score);
-            lb = lb.slice(0, 50);
-            localStorage.setItem(`leaderboard_${difficulty}`, JSON.stringify(lb));
-            const rank = lb.findIndex(e => (e.player_id === playerId || e.name === username) && e.score === score) + 1;
+
+        // Fallback
+        let leaderboard = JSON.parse(localStorage.getItem(`leaderboard_${difficulty}`) || '[]');
+        const existingEntryLocal = leaderboard.find(entry => entry.player_id === playerId || entry.name === username);
+
+        if (!existingEntryLocal || score > existingEntryLocal.score) {
+            leaderboard = leaderboard.filter(entry => entry.player_id !== playerId && entry.name !== username);
+            leaderboard.push(newEntry);
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 50);
+            localStorage.setItem(`leaderboard_${difficulty}`, JSON.stringify(leaderboard));
+            const rank = leaderboard.findIndex(entry => (entry.player_id === playerId || entry.name === username) && entry.score === score) + 1;
             return rank > 0 ? rank : -1;
-        }
-        return -1;
+        } else return -1;
     }
 
     async function renderLeaderboard(difficulty) {
         const leaderboardList = document.getElementById('leaderboard-list');
         const leaderboard = await getLeaderboard(difficulty);
         leaderboardList.innerHTML = '';
+
         if (leaderboard.length === 0) {
             leaderboardList.innerHTML = '<div class="loading">Оноо байхгүй байна. Эхний нэгнийх бол!</div>';
             return;
         }
+
         leaderboard.forEach((entry, index) => {
             const rank = index + 1;
             const isCurrentUser = entry.player_id ? entry.player_id === playerId : entry.name === username;
+
             const item = document.createElement('div');
             item.className = `leaderboard-item ${isCurrentUser ? 'current-user' : ''}`;
-            let rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+
+            let rankClass = '';
+            if (rank === 1) rankClass = 'rank-1';
+            else if (rank === 2) rankClass = 'rank-2';
+            else if (rank === 3) rankClass = 'rank-3';
+
             const displayDate = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : entry.date;
+
             item.innerHTML = `
                 <div class="rank ${rankClass}">#${rank}</div>
                 <div class="player-info">
@@ -476,13 +448,17 @@ const AppController = (function() {
         });
     }
 
+
+
     return {
-        init, goHome,
-        openSettingsForMode,
+        init,
         handleWordRainEnd,
         handleParagraphEnd,
         handleKeyboardEnd
     };
 })();
 
-window.addEventListener('DOMContentLoaded', () => { AppController.init(); });
+// Bootstrap
+window.addEventListener('DOMContentLoaded', () => {
+    AppController.init();
+});
