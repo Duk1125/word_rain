@@ -1,73 +1,62 @@
 window.ParagraphMode = (function() {
     let containerElement;
     let textDisplayElement;
-    let inputElement;
     let statsElement;
     
     let currentParagraph = null;
     let timerInterval;
     let startTime;
-    let timeElapsed = 0; // seconds
+    let timeElapsed = 0;
     let isRunning = false;
+    let isPaused  = false;
     
     let targetText = "";
-    let typedText = "";
+    let typedText  = "";
     
     let isActiveMode = false;
     
     function init(elements) {
-        containerElement = elements.container;
+        containerElement  = elements.container;
         textDisplayElement = elements.textDisplay;
-        statsElement = elements.stats;
-
-        // Ensure elements exist
-        if(!textDisplayElement) return;
-
+        statsElement      = elements.stats;
+        if (!textDisplayElement) return;
         document.addEventListener('keydown', handleKeyDown);
     }
 
     function startRandom() {
         const paragraphs = window.typingParagraphs || [];
-        if(paragraphs.length === 0) return;
-        
+        if (paragraphs.length === 0) return;
         const randomIndex = Math.floor(Math.random() * paragraphs.length);
         start(paragraphs[randomIndex]);
     }
 
     function start(paragraphObj) {
         currentParagraph = paragraphObj;
-        targetText = paragraphObj.text;
-        typedText = "";
+        targetText  = paragraphObj.text;
+        typedText   = "";
         timeElapsed = 0;
-        isRunning = false;
+        isRunning   = false;
+        isPaused    = false;
         isActiveMode = true;
-        startTime = null;
-        
+        startTime   = null;
         clearInterval(timerInterval);
-        
+        removeModal('para-pause-modal');
         renderText();
         updateLiveStats();
-        
-        // Show container if not handled by root
         containerElement.classList.remove('hidden');
     }
 
     function handleKeyDown(e) {
-        if (!isActiveMode) return;
+        if (!isActiveMode || isPaused) return;
 
         if (!isRunning && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-            // Start timer on first keystroke
             isRunning = true;
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
         }
-        
         if (!isRunning) return;
 
-        // Prevent browser default actions for spacebar and backspace when playing
-        if (e.key === ' ' || e.key === 'Backspace') {
-            e.preventDefault();
-        }
+        if (e.key === ' ' || e.key === 'Backspace') e.preventDefault();
 
         if (e.key === 'Backspace') {
             typedText = typedText.slice(0, -1);
@@ -76,52 +65,38 @@ window.ParagraphMode = (function() {
         } else {
             return;
         }
-        
+
         const isFinished = typedText.length >= targetText.length;
-        
         renderText();
-        
-        if (isFinished) {
-            finish();
-        }
+        if (isFinished) finish();
     }
 
     function updateTimer() {
+        if (isPaused) return;
         timeElapsed = Math.floor((Date.now() - startTime) / 1000);
         updateLiveStats();
     }
 
     function renderText() {
-        // Build character by character HTML
         let html = '';
         let correctCount = 0;
-        
         for (let i = 0; i < targetText.length; i++) {
-            const char = targetText[i];
+            const char     = targetText[i];
             const typedChar = typedText[i];
-            
             let charClass = '';
             if (typedChar == null) {
-                charClass = 'untyped';
-                // Mark cursor position loosely
-                if(i === typedText.length) charClass += ' cursor';
+                charClass = i === typedText.length ? 'untyped cursor' : 'untyped';
             } else if (char === typedChar) {
-                charClass = 'correct';
-                correctCount++;
+                charClass = 'correct'; correctCount++;
             } else {
                 charClass = 'incorrect';
             }
-            
             html += `<span class="${charClass}">${char === ' ' ? '&nbsp;' : char}</span>`;
         }
-        
         textDisplayElement.innerHTML = html;
-        
-        // Live accuracy
         let currentAcc = window.TypingAnalytics.calculateAccuracy(correctCount, typedText.length);
         let currentWpm = window.TypingAnalytics.calculateWPM(correctCount, timeElapsed);
-        
-        if(statsElement) {
+        if (statsElement) {
             statsElement.innerHTML = `
                 <div class="stat-item">Хугацаа: <span>${window.TypingAnalytics.formatTime(timeElapsed)}</span></div>
                 <div class="stat-item">WPM: <span>${currentWpm}</span></div>
@@ -131,15 +106,14 @@ window.ParagraphMode = (function() {
     }
     
     function updateLiveStats() {
-        if(!isRunning) return;
+        if (!isRunning) return;
         let correctCount = 0;
         for (let i = 0; i < typedText.length; i++) {
             if (typedText[i] === targetText[i]) correctCount++;
         }
         let currentWpm = window.TypingAnalytics.calculateWPM(correctCount, timeElapsed);
         let currentAcc = window.TypingAnalytics.calculateAccuracy(correctCount, typedText.length);
-        
-        if(statsElement) {
+        if (statsElement) {
             statsElement.innerHTML = `
                 <div class="stat-item">Хугацаа: <span>${window.TypingAnalytics.formatTime(timeElapsed)}</span></div>
                 <div class="stat-item">WPM: <span>${currentWpm}</span></div>
@@ -149,35 +123,90 @@ window.ParagraphMode = (function() {
     }
 
     function finish() {
-        isRunning = false;
+        isRunning    = false;
         isActiveMode = false;
         clearInterval(timerInterval);
-        
         let correctCount = 0;
         for (let i = 0; i < typedText.length; i++) {
             if (typedText[i] === targetText[i]) correctCount++;
         }
-        
         const finalWpm = window.TypingAnalytics.calculateWPM(correctCount, timeElapsed);
         const finalAcc = window.TypingAnalytics.calculateAccuracy(correctCount, typedText.length);
-        
         const stats = {
             "Зарцуулсан хугацаа": window.TypingAnalytics.formatTime(timeElapsed),
-            "Бичсэн үсгийн тоо": typedText.length,
-            "WPM (Үг/минут)": finalWpm,
-            "Нарийвчлал": finalAcc + "%"
+            "Бичсэн үсгийн тоо":  typedText.length,
+            "WPM (Үг/минут)":     finalWpm,
+            "Нарийвчлал":         finalAcc + "%"
         };
-        
-        if(window.AppController && window.AppController.handleParagraphEnd) {
+        if (window.AppController && window.AppController.handleParagraphEnd) {
             window.AppController.handleParagraphEnd(stats);
         }
     }
 
     function stop() {
-        isRunning = false;
+        isRunning    = false;
         isActiveMode = false;
+        isPaused     = false;
         clearInterval(timerInterval);
+        removeModal('para-pause-modal');
     }
 
-    return { init, startRandom, stop };
+    // ── pause / resume ─────────────────────────────────
+    function pause() {
+        if (!isActiveMode && !isRunning) return;
+        isPaused = true;
+        clearInterval(timerInterval);
+        if (startTime) timeElapsed = Math.floor((Date.now() - startTime) / 1000);
+    }
+
+    function resume() {
+        if (!isPaused) return;
+        isPaused = false;
+        if (isRunning) {
+            startTime = Date.now() - timeElapsed * 1000;
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+    }
+
+    function removeModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    function showPauseModal() {
+        pause();
+        removeModal('para-pause-modal');
+        const overlay = document.createElement('div');
+        overlay.id = 'para-pause-modal';
+        overlay.className = 'modal-overlay kb-modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal-content kb-pause-content">
+                <h2>⏸ Түр зогсоов</h2>
+                <div class="kb-pause-buttons">
+                    <button id="parp-resume"   class="primary-btn">▶ Үргэлжлүүлэх</button>
+                    <button id="parp-restart"  class="primary-btn kbp-secondary">↺ Дахин эхлэх</button>
+                    <button id="parp-home"     class="text-btn">🏠 Үндсэн цэс</button>
+                    <button id="parp-settings" class="text-btn">⚙️ Тохиргоо</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        document.getElementById('parp-resume').addEventListener('click', () => {
+            overlay.remove(); resume();
+        });
+        document.getElementById('parp-restart').addEventListener('click', () => {
+            overlay.remove(); start(currentParagraph);
+        });
+        document.getElementById('parp-home').addEventListener('click', () => {
+            overlay.remove(); stop();
+            if (window.AppController && window.AppController.goHome) window.AppController.goHome();
+        });
+        document.getElementById('parp-settings').addEventListener('click', () => {
+            if (window.AppController && window.AppController.openSettingsForMode) {
+                window.AppController.openSettingsForMode('paragraph');
+            }
+        });
+    }
+
+    return { init, startRandom, stop, pause, resume, showPauseModal };
 })();
