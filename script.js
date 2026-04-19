@@ -32,6 +32,13 @@ const AppController = (function() {
         });
     }
 
+    // Modes state
+    let activeMode = null; // 'word-rain', 'paragraph', 'keyboard'
+    let currentWRDiff = { speed: 1.4, spawn: 1.4, key: 'level2' };
+    let currentKBStage = 0;
+
+    const pauseModal = document.getElementById('pause-modal');
+
     function init() {
         checkUsername();
         setupEventListeners();
@@ -109,6 +116,11 @@ const AppController = (function() {
             if(el) el.classList.add('hidden');
         });
         if(screenEl) screenEl.classList.remove('hidden');
+
+        // Reset active mode if returning to menu/start
+        if (screenEl === startScreen || screenEl === usernameScreen || screenEl.id?.startsWith('prep-')) {
+            activeMode = null;
+        }
     }
 
     function setupEventListeners() {
@@ -139,81 +151,64 @@ const AppController = (function() {
         });
 
         // Word Rain Difficulty logic inside Prep Screen
-        let selectedSpeed = 1.4;
-        let selectedSpawn = 1.4;
-        let wrDiffKey = 'level2';
-
         document.querySelectorAll('#prep-word-rain .diff-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('#prep-word-rain .diff-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
-                selectedSpeed = parseFloat(e.target.dataset.speed);
-                selectedSpawn = parseFloat(e.target.dataset.spawn);
+                currentWRDiff.speed = parseFloat(e.target.dataset.speed);
+                currentWRDiff.spawn = parseFloat(e.target.dataset.spawn);
                 
-                if (selectedSpeed === 1.0) wrDiffKey = 'level1';
-                else if (selectedSpeed === 1.4) wrDiffKey = 'level2';
-                else if (selectedSpeed === 2.0) wrDiffKey = 'level3';
-                else if (selectedSpeed === 2.8) wrDiffKey = 'level4';
+                if (currentWRDiff.speed === 1.0) currentWRDiff.key = 'level1';
+                else if (currentWRDiff.speed === 1.4) currentWRDiff.key = 'level2';
+                else if (currentWRDiff.speed === 2.0) currentWRDiff.key = 'level3';
+                else if (currentWRDiff.speed === 2.8) currentWRDiff.key = 'level4';
             });
         });
 
         // Keyboard Stage logic inside Prep Screen
-        let selectedKeyboardStage = 0; // Default to Stage 0 (1-р шат)
-        
         document.querySelectorAll('#keyboard-stage-select .diff-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('#keyboard-stage-select .diff-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
-                selectedKeyboardStage = parseInt(e.target.dataset.stage, 10);
+                currentKBStage = parseInt(e.target.dataset.stage, 10);
             });
         });
 
         document.querySelectorAll('.real-start-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const mode = e.target.dataset.mode;
-                if(mode === 'word-rain') {
-                    showScreen(wordRainContainer);
-                    window.WordRain.start(selectedSpeed, selectedSpawn, wrDiffKey);
-                } else if(mode === 'paragraph') {
-                    showScreen(paragraphContainer);
-                    window.ParagraphMode.startRandom();
-                } else if(mode === 'keyboard') {
-                    showScreen(keyboardContainer);
-                    window.KeyboardMode.start(selectedKeyboardStage);
-                }
+                startMode(mode);
             });
         });
 
-        // Global Returns from active game
-        document.querySelectorAll('.menu-return-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if(window.WordRain) window.WordRain.stop();
-                if(window.ParagraphMode) window.ParagraphMode.stop();
-                if(window.KeyboardMode) window.KeyboardMode.stop();
-                showScreen(startScreen);
-            });
+        // Universal Pause Button Handling
+        document.querySelectorAll('.pause-btn').forEach(btn => {
+            btn.addEventListener('click', openPauseModal);
         });
 
-        // Existing pause logic for Word Rain (Optional implementation mapping)
-        const pauseBtn = document.getElementById('pause-btn');
-        if(pauseBtn) {
-            pauseBtn.addEventListener('click', () => {
-                if(window.WordRain) {
-                    const isPaused = window.WordRain.togglePause();
-                    pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
-                }
-            });
-        }
+        // Pause Modal Actions
+        document.getElementById('pause-resume-btn').addEventListener('click', closePauseModal);
+        document.getElementById('pause-restart-btn').addEventListener('click', () => {
+            restartCurrentMode();
+            closePauseModal();
+        });
+        document.getElementById('pause-home-btn').addEventListener('click', () => {
+            stopCurrentMode();
+            closePauseModal();
+            showScreen(startScreen);
+        });
+        document.getElementById('pause-settings-btn').addEventListener('click', () => {
+            openSettings();
+        });
 
-        // Leaderboard modal specific (from game over screen / prep screen)
+        // Leaderboard modal specific (from prep screen)
         if(document.getElementById('prep-show-leaderboard-btn')) {
             document.getElementById('prep-show-leaderboard-btn').addEventListener('click', () => {
                 document.getElementById('leaderboard-modal').classList.remove('hidden');
-                // Ensure the correct tab is highlighted
                 document.querySelectorAll('.tab-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.tab === wrDiffKey);
+                    b.classList.toggle('active', b.dataset.tab === currentWRDiff.key);
                 });
-                renderLeaderboard(wrDiffKey);
+                renderLeaderboard(currentWRDiff.key);
             });
         }
         if(document.getElementById('close-leaderboard')) {
@@ -230,12 +225,7 @@ const AppController = (function() {
             });
         });
 
-        // Settings (mapped to all bottom-left icons)
-        document.querySelectorAll('.settings-btn-bottom-left').forEach(btn => {
-            btn.addEventListener('click', () => {
-                settingsModal.classList.remove('hidden');
-            });
-        });
+        // Settings Modal
         document.getElementById('close-settings').addEventListener('click', () => {
             settingsModal.classList.add('hidden');
         });
@@ -257,6 +247,66 @@ const AppController = (function() {
                 updateSettingsUI();
             });
         });
+    }
+
+    // --- Mode Control Logic ---
+    function startMode(mode) {
+        activeMode = mode;
+        if(mode === 'word-rain') {
+            showScreen(wordRainContainer);
+            window.WordRain.start(currentWRDiff.speed, currentWRDiff.spawn, currentWRDiff.key);
+        } else if(mode === 'paragraph') {
+            showScreen(paragraphContainer);
+            window.ParagraphMode.startRandom();
+        } else if(mode === 'keyboard') {
+            showScreen(keyboardContainer);
+            window.KeyboardMode.start(currentKBStage);
+        }
+    }
+
+    function stopCurrentMode() {
+        if(window.WordRain) window.WordRain.stop();
+        if(window.ParagraphMode) window.ParagraphMode.stop();
+        if(window.KeyboardMode) window.KeyboardMode.stop();
+        activeMode = null;
+    }
+
+    function restartCurrentMode() {
+        const prevMode = activeMode;
+        stopCurrentMode();
+        if (prevMode) startMode(prevMode);
+    }
+
+    function openPauseModal() {
+        if (!activeMode) return;
+        
+        // Call pause on the specific mode
+        if (activeMode === 'word-rain' && window.WordRain) window.WordRain.togglePause();
+        else if (activeMode === 'paragraph' && window.ParagraphMode) window.ParagraphMode.pause();
+        else if (activeMode === 'keyboard' && window.KeyboardMode) window.KeyboardMode.pause();
+
+        pauseModal.classList.remove('hidden');
+    }
+
+    function closePauseModal() {
+        pauseModal.classList.add('hidden');
+        if (!activeMode) return;
+
+        // Call resume on the specific mode
+        if (activeMode === 'word-rain' && window.WordRain) window.WordRain.togglePause();
+        else if (activeMode === 'paragraph' && window.ParagraphMode) window.ParagraphMode.resume();
+        else if (activeMode === 'keyboard' && window.KeyboardMode) window.KeyboardMode.resume();
+    }
+
+    function openSettings() {
+        // Filter Font Size setting only for Word Rain
+        const fontSizeSection = document.getElementById('font-size-section');
+        if (fontSizeSection) {
+            // Should show if activeMode is word-rain OR if we are on prep screen for word-rain
+            const isWordRainActive = activeMode === 'word-rain' || (!activeMode && !prepWordRain.classList.contains('hidden'));
+            fontSizeSection.style.display = isWordRainActive ? 'block' : 'none';
+        }
+        settingsModal.classList.remove('hidden');
     }
 
     // --- Settings Logic ---

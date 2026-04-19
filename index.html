@@ -32,13 +32,12 @@
                 <!-- Stats injected here -->
             </div>
             <div class="header-right">
-                <button class="icon-only-btn-small menu-return-btn" aria-label="Menu">🏠</button>
+                <button id="paragraph-pause-btn" class="icon-only-btn-small pause-btn" aria-label="Pause">⏸️</button>
             </div>
         </header>
         <div id="paragraph-display-area">
             <!-- Text rendered here -->
         </div>
-        <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
     <div id="keyboard-container" class="hidden app-container">
@@ -50,7 +49,7 @@
                 <!-- Stats injected here -->
             </div>
             <div class="header-right">
-                <button class="icon-only-btn-small menu-return-btn" aria-label="Menu">🏠</button>
+                <button id="keyboard-pause-btn" class="icon-only-btn-small pause-btn" aria-label="Pause">⏸️</button>
             </div>
         </header>
         <!-- Text slider ABOVE keyboard guide -->
@@ -60,7 +59,6 @@
         <div id="keyboard-hint-area">
             <!-- Visual keyboard + finger guide rendered here -->
         </div>
-        <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
     <!-- Keep Original Game Container Structure -->
@@ -76,7 +74,7 @@
                 <div class="stat-item" id="lives-container"></div>
             </div>
             <div class="header-right">
-                <button id="pause-btn" class="icon-only-btn-small" aria-label="Pause">⏸️</button>
+                <button id="wr-pause-btn" class="icon-only-btn-small pause-btn" aria-label="Pause">⏸️</button>
             </div>
         </header>
 
@@ -88,7 +86,6 @@
             <input type="text" id="word-input" placeholder="Энд бичнэ үү..." autocomplete="off" autocapitalize="off"
                 autocorrect="off" spellcheck="false">
         </div>
-        <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
     <div id="start-screen" class="hidden" style="justify-content: center; align-items: center;">
@@ -230,6 +227,23 @@
                     <div id="preview-area" class="preview-area">
                         <span id="preview-word" class="falling-word">Алим</span>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Pause Modal -->
+    <div id="pause-modal" class="hidden modal-overlay">
+        <div class="modal-content pause-content">
+            <div class="modal-header">
+                <h2>ТҮР ЗОГСООВ</h2>
+            </div>
+            <div class="pause-body">
+                <div class="pause-actions">
+                    <button id="pause-resume-btn" class="pause-opt-btn" title="Үргэлжлүүлэх">▶️</button>
+                    <button id="pause-restart-btn" class="pause-opt-btn" title="Дахин эхлэх">🔄</button>
+                    <button id="pause-settings-btn" class="pause-opt-btn" title="Тохиргоо">⚙️</button>
+                    <button id="pause-home-btn" class="pause-opt-btn" title="Үндсэн цэс">🏠</button>
                 </div>
             </div>
         </div>

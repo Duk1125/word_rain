@@ -52,8 +52,11 @@ window.ParagraphMode = (function() {
         containerElement.classList.remove('hidden');
     }
 
+    let isPaused = false;
+    let pauseStartTime = 0;
+
     function handleKeyDown(e) {
-        if (!isActiveMode) return;
+        if (!isActiveMode || isPaused) return;
 
         if (!isRunning && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
             // Start timer on first keystroke
@@ -87,6 +90,7 @@ window.ParagraphMode = (function() {
     }
 
     function updateTimer() {
+        if (!isRunning || isPaused) return;
         timeElapsed = Math.floor((Date.now() - startTime) / 1000);
         updateLiveStats();
     }
@@ -131,7 +135,7 @@ window.ParagraphMode = (function() {
     }
     
     function updateLiveStats() {
-        if(!isRunning) return;
+        if(!isRunning || isPaused) return;
         let correctCount = 0;
         for (let i = 0; i < typedText.length; i++) {
             if (typedText[i] === targetText[i]) correctCount++;
@@ -173,11 +177,29 @@ window.ParagraphMode = (function() {
         }
     }
 
-    function stop() {
-        isRunning = false;
-        isActiveMode = false;
+    function pause() {
+        if (!isRunning || isPaused) return;
+        isPaused = true;
+        pauseStartTime = Date.now();
         clearInterval(timerInterval);
     }
 
-    return { init, startRandom, stop };
+    function resume() {
+        if (!isPaused) return;
+        isPaused = false;
+        if (startTime) {
+            const pausedDuration = Date.now() - pauseStartTime;
+            startTime += pausedDuration;
+        }
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function stop() {
+        isRunning = false;
+        isActiveMode = false;
+        isPaused = false;
+        clearInterval(timerInterval);
+    }
+
+    return { init, startRandom, start, stop, pause, resume };
 })();

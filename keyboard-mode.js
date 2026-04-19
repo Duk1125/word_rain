@@ -28,8 +28,8 @@ window.KeyboardMode = (function () {
 
     // ── Constants ─────────────────────────────────────────
     const TOTAL_CHARS = 120;
-    const CHAR_PX     = 44;   // px per char cell — must match CSS .kb-char min-width
-    const ANCHOR_LEFT = 140;  // px from viewport left where active char is pinned
+    const CHAR_PX     = 68;   // matches CSS .kb-char min-width
+    const ANCHOR_LEFT = 200;  // matches CSS #kb-viewport::before left
 
     // ── init ──────────────────────────────────────────────
     function init(elements) {
@@ -54,6 +54,7 @@ window.KeyboardMode = (function () {
         errorCount   = 0;
         timeElapsed  = 0;
         isRunning    = false;
+        isPaused     = false;
         isActiveMode = true;
         startTime    = null;
         clearInterval(timerInterval);
@@ -131,7 +132,7 @@ window.KeyboardMode = (function () {
 
     // ── Key handler ───────────────────────────────────────
     function handleKeyDown(e) {
-        if (!isActiveMode) return;
+        if (!isActiveMode || isPaused) return; 
         if (e.ctrlKey || e.altKey || e.metaKey) return;
         if (e.key === 'Tab' || e.key === ' ' || e.key === 'Backspace') {
             e.preventDefault();
@@ -144,7 +145,7 @@ window.KeyboardMode = (function () {
         if (!isRunning) {
             isRunning = true;
             startTime = Date.now();
-            timerInterval = setInterval(tickTimer, 500);
+            timerInterval = setInterval(tickTimer, 1000);
         }
 
         const expected = targetText[charIndex];
@@ -180,7 +181,7 @@ window.KeyboardMode = (function () {
 
     // ── Timer ─────────────────────────────────────────────
     function tickTimer() {
-        if (!startTime) return;
+        if (!startTime || isPaused) return;
         timeElapsed = Math.round((Date.now() - startTime) / 1000);
         updateStats();
     }
@@ -220,23 +221,44 @@ window.KeyboardMode = (function () {
             ? window.TypingAnalytics.formatTime(timeElapsed)
             : timeElapsed + 'с';
 
-        const stats = {
+        const statsData = {
             "Шат":               stageName,
             "Зарцуулсан хугацаа": fmt,
-            "Бичсэн үсгийн тоо":  charIndex,
+            "Нийт текст":        TOTAL_CHARS,
             "Алдааны тоо":        errorCount,
-            "WPM":                wpm,
-            "Нарийвчлал":         accuracy + "%"
+            "Нарийвчлал":         accuracy + "%",
+            "WPM":                wpm
         };
 
         if (window.AppController && window.AppController.handleKeyboardEnd) {
-            window.AppController.handleKeyboardEnd(stats);
+            window.AppController.handleKeyboardEnd(statsData);
         }
     }
 
-    // ── stop ─────────────────────────────────────────────
+    // ── pause / resume / stop ──────────────────────────────
+    let isPaused = false;
+    let pauseStartTime = 0;
+
+    function pause() {
+        if(!isRunning || isPaused) return;
+        isPaused = true;
+        pauseStartTime = Date.now();
+        clearInterval(timerInterval);
+    }
+
+    function resume() {
+        if(!isPaused) return;
+        isPaused = false;
+        if(startTime) {
+            const pausedDuration = Date.now() - pauseStartTime;
+            startTime += pausedDuration;
+        }
+        timerInterval = setInterval(tickTimer, 1000);
+    }
+
     function stop() {
         isRunning    = false;
+        isPaused     = false;
         isActiveMode = false;
         clearInterval(timerInterval);
     }
@@ -273,13 +295,12 @@ window.KeyboardMode = (function () {
             : null;
 
         // ── Key geometry ─────────────────────────────────
-        // Row stagger: no extra padding on row 3 (Shift fills the gap)
-        const staggerPx = [0, 22, 42, 0];
+        const staggerPx = [0, 26, 48, 0];
 
         // ── Helper: build one key element style ──────────
         function activeKeyStyle(fc) {
             return `background:${fc.bg};border-color:${fc.border};color:${fc.text};` +
-                   `box-shadow:0 0 22px ${fc.bg}99;transform:translateY(2px) scale(1.12);` +
+                   `box-shadow:0 0 26px ${fc.bg}bb;transform:translateY(2px) scale(1.1);` +
                    `z-index:2;position:relative;`;
         }
 
@@ -309,9 +330,9 @@ window.KeyboardMode = (function () {
 
             // LEFT SHIFT (row 3 only, no extra indent before it)
             if (r === 3) {
-                const lsActive = shiftHand === 'left' && fiCol;
+                const lsActive = shiftHand === 'left';
                 const lsStyle  = lsActive
-                    ? `style="${subtleKeyStyle(fiCol)}box-shadow:0 0 14px ${fiCol.bg}60;"`
+                    ? `style="${subtleKeyStyle(FC[4])}box-shadow:0 0 16px ${FC[4].bg}80;"`
                     : '';
                 kbHTML += `<div class="vkb-key vkb-shift vkb-left-f4" ${lsStyle} title="Зүүн Shift">⇧</div>`;
             }
@@ -329,9 +350,9 @@ window.KeyboardMode = (function () {
 
             // RIGHT SHIFT (row 3 only)
             if (r === 3) {
-                const rsActive = shiftHand === 'right' && fiCol;
+                const rsActive = shiftHand === 'right';
                 const rsStyle  = rsActive
-                    ? `style="${subtleKeyStyle(fiCol)}box-shadow:0 0 14px ${fiCol.bg}60;"`
+                    ? `style="${subtleKeyStyle(FC[4])}box-shadow:0 0 16px ${FC[4].bg}80;"`
                     : '';
                 kbHTML += `<div class="vkb-key vkb-shift vkb-right-f4" ${rsStyle} title="Баруун Shift">⇧</div>`;
             }
@@ -351,15 +372,18 @@ window.KeyboardMode = (function () {
                 const isActiveChar  = fiInfo && fiInfo.hand === hand && fiInfo.finger === f;
                 const isShiftFinger = isUpper && shiftHand === hand && f === 4;
                 const highlight     = isActiveChar || isShiftFinger;
+                
+                // For Shift finger highlight, use blue (finger 4). For others, use their own color.
+                const highlightCol = (isShiftFinger && !isActiveChar) ? FC[4] : FC[f];
                 const fc            = FC[f];
 
                 const tipStyle = fc
                     ? highlight
-                        ? `style="background:${fc.bg};box-shadow:0 0 20px ${fc.bg}99;border-color:${fc.border};" `
-                        : `style="border-color:${fc.subtleBorder};background:${fc.subtle};" `
+                        ? `style="background:${highlightCol.bg};box-shadow:0 0 25px ${highlightCol.bg}aa;border-color:${highlightCol.border};"`
+                        : `style="border-color:${fc.subtleBorder};background:${fc.subtle};"`
                     : '';
                 const labelStyle = fc
-                    ? `style="color:${fc.label};opacity:${highlight ? 1 : 0.55};" `
+                    ? `style="color:${fc.label};opacity:${highlight ? 1 : 0.6};"`
                     : '';
 
                 return `<div class="fguide-finger fguide-${hand}-f${f}">
@@ -379,7 +403,7 @@ window.KeyboardMode = (function () {
         if (fiInfo && fiCol) {
             const shiftNote = isUpper
                 ? ` <span style="color:rgba(255,255,255,0.45)">+</span>` +
-                  ` <span style="color:${fiCol.label}">${shiftHand === 'left' ? 'Зүүн' : 'Баруун'} Shift</span>`
+                  ` <span style="color:${FC[4].label}">${shiftHand === 'left' ? 'Зүүн' : 'Баруун'} Shift</span>`
                 : '';
             hintLine = `<div class="fguide-hint" style="color:${fiCol.label}">` +
                        `▶ ${fiInfo.name}${shiftNote}</div>`;
