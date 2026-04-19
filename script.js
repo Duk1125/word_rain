@@ -500,12 +500,15 @@ const AppController = (function() {
 
 
 
-    return {
+    // Global Exposure
+    window.AppController = {
         init,
         handleWordRainEnd,
         handleParagraphEnd,
         handleKeyboardEnd
     };
+
+    return window.AppController;
 })();
 
 // Bootstrap

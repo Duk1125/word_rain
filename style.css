@@ -500,23 +500,17 @@ header {
     color: rgba(255, 235, 120, 0.75);
 }
 
-/* Symbol row – dimmed */
+/* standardized height to match regular keys */
 .vkb-sym {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.30);
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     width: 64px;
-    height: 48px;
+    height: 64px;
 }
 
-/* Shift key – wider */
+/* Shift key – wider but keeps finger colors */
 .vkb-shift {
     width: 100px;
-    font-size: 1.3rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.18);
-    color: rgba(255, 255, 255, 0.50);
+    font-size: 1.35rem;
 }
 
 /* ==================================================

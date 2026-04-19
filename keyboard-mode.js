@@ -311,7 +311,7 @@ window.KeyboardMode = (function () {
         // ── Render keyboard HTML ──────────────────────────
         let kbHTML = '<div class="vkb">';
 
-        // Row 0 – symbol row (decorative, dimmed)
+        // Row 0 – symbol row (Now standardized with finger colors)
         kbHTML += `<div class="vkb-row" style="padding-left:${staggerPx[0]}px">`;
         const symRow = layout[0] || [];
         for (let c = 0; c < symRow.length; c++) {
@@ -320,7 +320,7 @@ window.KeyboardMode = (function () {
             const fi0   = fingerMap[`0-${c}`];
             const fCls  = fi0 ? `vkb-${fi0.hand}-f${fi0.finger}` : '';
             const sAttr = isT && fiCol ? `style="${activeKeyStyle(fiCol)}"` : '';
-            kbHTML += `<div class="vkb-key vkb-sym ${fCls}" ${sAttr}>${ch0}</div>`;
+            kbHTML += `<div class="vkb-key ${fCls}" ${sAttr}>${ch0}</div>`;
         }
         kbHTML += `</div>`;
 
@@ -328,13 +328,13 @@ window.KeyboardMode = (function () {
         for (let r = 1; r <= 3; r++) {
             kbHTML += `<div class="vkb-row" style="padding-left:${staggerPx[r]}px">`;
 
-            // LEFT SHIFT (row 3 only, no extra indent before it)
+            // LEFT SHIFT (row 3 only)
             if (r === 3) {
                 const lsActive = shiftHand === 'left';
-                const lsStyle  = lsActive
-                    ? `style="${subtleKeyStyle(FC[4])}box-shadow:0 0 16px ${FC[4].bg}80;"`
-                    : '';
-                kbHTML += `<div class="vkb-key vkb-shift vkb-left-f4" ${lsStyle} title="Зүүн Shift">⇧</div>`;
+                const lsAttr  = lsActive
+                    ? `style="${activeKeyStyle(FC[4])}"`
+                    : `style="${subtleKeyStyle(FC[4])}"`;
+                kbHTML += `<div class="vkb-key vkb-shift vkb-left-f4" ${lsAttr} title="Зүүн Shift">⇧</div>`;
             }
 
             const row = layout[r] || [];
@@ -351,10 +351,10 @@ window.KeyboardMode = (function () {
             // RIGHT SHIFT (row 3 only)
             if (r === 3) {
                 const rsActive = shiftHand === 'right';
-                const rsStyle  = rsActive
-                    ? `style="${subtleKeyStyle(FC[4])}box-shadow:0 0 16px ${FC[4].bg}80;"`
-                    : '';
-                kbHTML += `<div class="vkb-key vkb-shift vkb-right-f4" ${rsStyle} title="Баруун Shift">⇧</div>`;
+                const rsAttr  = rsActive
+                    ? `style="${activeKeyStyle(FC[4])}"`
+                    : `style="${subtleKeyStyle(FC[4])}"`;
+                kbHTML += `<div class="vkb-key vkb-shift vkb-right-f4" ${rsAttr} title="Баруун Shift">⇧</div>`;
             }
 
             kbHTML += `</div>`;
@@ -423,7 +423,7 @@ window.KeyboardMode = (function () {
 
     // ── Public API ────────────────────────────────────────
     return {
-        init, start, stop,
+        init, start, stop, pause, resume,
         get _lastStage() { return currentStageIndex; }
     };
 
