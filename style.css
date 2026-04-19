@@ -309,84 +309,256 @@ header {
 }
 
 #keyboard-display-area {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 30px 32px 56px;
+    padding: 20px 0 10px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    overflow-y: auto;
-    font-size: var(--game-font-size);
-    font-family: var(--font-body);
-    line-height: 1.6;
-    text-align: center;
+    gap: 14px;
 }
 
-.correct {
-    color: var(--primary-color);
-    text-shadow: 0 0 7px var(--primary-glow);
-}
+/* .correct / .incorrect / .untyped keep existing colours */
 
-.incorrect {
-    color: var(--danger-color);
-    text-decoration: underline;
-    text-shadow: 0 0 7px rgba(255, 74, 74, 0.35);
-}
-
-.untyped {
-    color: var(--text-muted);
-}
-
-.cursor {
-    border-bottom: 3px solid var(--primary-color);
-    animation: blink 1s infinite alternate;
-}
-
-.kb-pattern {
-    margin-top: 30px;
-    font-family: monospace, var(--font-heading);
-    font-size: calc(var(--game-font-size) * 1.25);
-    line-height: 1.8;
-    letter-spacing: 2px;
-    text-align: center;
-    word-break: break-word;
-}
+/* OLD patterns — kept for reference but hidden in kbd mode */
+.kb-pattern { display: none; }
 
 #keyboard-hint-area {
+    flex: 1 1 auto;
     width: 100%;
-    padding: 16px 20px 10px;
-    text-align: center;
-    background: transparent;
-}
-
-.keyboard-hints p {
-    font-size: 1.05rem;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-}
-
-.key-list {
+    padding: 0 10px 60px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    overflow: hidden;
 }
 
-.k-key {
+/* ==================================================
+   Sliding single-line practice
+   ================================================== */
+#kb-viewport {
+    width: 100%;
+    max-width: 900px;
+    height: 80px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.35);
+    border: 2px solid var(--surface-border);
+}
+
+/* Anchor line — shows where the active char sits */
+#kb-viewport::before {
+    content: '';
+    position: absolute;
+    left: 120px;
+    top: 12px;
+    width: 2px;
+    height: 56px;
+    background: var(--primary-color);
+    opacity: 0.35;
+    border-radius: 2px;
+    z-index: 2;
+}
+
+#kb-track {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+}
+
+.kb-char {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 48px;
-    padding: 10px 15px;
-    border: 2px solid var(--surface-border);
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.38);
-    color: var(--text-color);
+    min-width: 42px;
+    height: 60px;
+    font-size: 2.1rem;
+    font-family: 'Outfit', monospace;
     font-weight: 700;
+    flex-shrink: 0;
+    border-radius: 8px;
+    transition: color 0.08s, background 0.08s, transform 0.08s;
+    user-select: none;
+}
+
+.kb-char.untyped {
+    color: rgba(255,255,255,0.45);
+}
+
+.kb-char.correct {
+    color: #4dffc0;
+    text-shadow: 0 0 10px rgba(77,255,192,0.5);
+}
+
+.kb-char.incorrect {
+    color: var(--danger-color);
+    text-shadow: 0 0 10px rgba(255,74,74,0.5);
+}
+
+.kb-char.kb-active {
+    color: #ffffff;
+    background: rgba(0,255,204,0.14);
+    border-radius: 8px;
+    box-shadow: 0 0 18px rgba(0,255,204,0.35), inset 0 0 0 2px var(--primary-color);
+    transform: scaleY(1.08);
+}
+
+/* Progress bar */
+#kb-progress-wrap {
+    width: 100%;
+    max-width: 900px;
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+#kb-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary-color), #00ccaa);
+    border-radius: 3px;
+    transition: width 0.1s linear;
+}
+
+/* ==================================================
+   Visual keyboard
+   ================================================== */
+.vkb {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    align-items: flex-start;
+}
+
+.vkb-row {
+    display: flex;
+    gap: 6px;
+}
+
+.vkb-key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.6);
+    transition: background 0.12s, color 0.12s, box-shadow 0.12s, transform 0.08s;
+    user-select: none;
+    cursor: default;
+}
+
+/* Finger colour coding (subtle) */
+.vkb-left-f4,  .vkb-right-f4  { background: rgba(120,80,200,0.15); border-color: rgba(120,80,200,0.3); }
+.vkb-left-f3,  .vkb-right-f3  { background: rgba(60,120,220,0.15); border-color: rgba(60,120,220,0.3); }
+.vkb-left-f2,  .vkb-right-f2  { background: rgba(40,170,150,0.15); border-color: rgba(40,170,150,0.3); }
+.vkb-left-f1,  .vkb-right-f1  { background: rgba(30,180,80,0.15);  border-color: rgba(30,180,80,0.3);  }
+
+.vkb-key-active {
+    background: var(--primary-color) !important;
+    color: #000 !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 20px rgba(0,255,204,0.6);
+    transform: translateY(2px) scale(1.08);
+    z-index: 2;
+}
+
+/* ==================================================
+   Finger guide
+   ================================================== */
+.fguide {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.fguide-hand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.fguide-hand-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
     text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fguide-fingers {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+}
+
+.fguide-finger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.fguide-tip {
+    width: 28px;
+    height: 52px;
+    border-radius: 14px 14px 6px 6px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+/* Finger height variation for natural hand shape */
+.fguide-left-f1  .fguide-tip, .fguide-right-f1 .fguide-tip { height: 56px; } /* index */
+.fguide-left-f2  .fguide-tip, .fguide-right-f2 .fguide-tip { height: 62px; } /* middle */
+.fguide-left-f3  .fguide-tip, .fguide-right-f3 .fguide-tip { height: 58px; } /* ring */
+.fguide-left-f4  .fguide-tip, .fguide-right-f4 .fguide-tip { height: 44px; } /* pinky */
+
+.fguide-active .fguide-tip {
+    background: var(--primary-color);
+    box-shadow: 0 0 16px rgba(0,255,204,0.55);
+    border-color: var(--primary-color);
+}
+
+.fguide-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.fguide-hint {
+    font-size: 0.95rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-align: center;
+    min-height: 1.4em;
+}
+
+/* colour legend dots on fingers */
+.fguide-left-f4 .fguide-tip, .fguide-right-f4 .fguide-tip { border-color: rgba(120,80,200,0.5); }
+.fguide-left-f3 .fguide-tip, .fguide-right-f3 .fguide-tip { border-color: rgba(60,120,220,0.5); }
+.fguide-left-f2 .fguide-tip, .fguide-right-f2 .fguide-tip { border-color: rgba(40,170,150,0.5); }
+.fguide-left-f1 .fguide-tip, .fguide-right-f1 .fguide-tip { border-color: rgba(30,180,80,0.5);  }
+
+@media (max-width: 700px) {
+    .vkb-key { width: 34px; height: 34px; font-size: 0.72rem; }
+    .kb-char  { min-width: 34px; font-size: 1.6rem; }
+    #kb-viewport { height: 60px; }
+    .fguide { gap: 20px; }
+    .fguide-tip { width: 22px; }
 }
 
 /* ========================================

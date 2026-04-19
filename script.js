@@ -317,7 +317,12 @@ const AppController = (function() {
     }
 
     function handleKeyboardEnd(statsData) {
-        showGameStatsMenu("Хурууны байрлал", statsData, () => window.KeyboardMode.startRandom());
+        // Get the stage that was last played so restart works correctly
+        const lastStage = (window.KeyboardMode && window.KeyboardMode._lastStage !== undefined)
+            ? window.KeyboardMode._lastStage : 0;
+        showGameStatsMenu("Хурууны байрлал", statsData, () => {
+            if (window.KeyboardMode) window.KeyboardMode.start(lastStage);
+        });
     }
 
     function showGameStatsMenu(modeName, statsData, restartCallback) {
