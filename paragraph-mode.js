@@ -1,161 +1,189 @@
 window.ParagraphMode = (function() {
-    let containerElement;
-    let textDisplayElement;
-    let statsElement;
-    
-    let currentParagraph = null;
-    let timerInterval;
-    let startTime;
-    let timeElapsed = 0; // seconds
-    let isRunning = false;
-    let isPaused = false;
-    let pauseStartTime = 0;
-    
-    let targetText = "";
-    let typedText = "";
-    
+    let containerElement, textDisplayElement, statsElement;
+    let currentParagraph = null, timerInterval, startTime, timeElapsed = 0;
+    let isRunning = false, isPaused = false, pauseStartTime = 0;
     let isActiveMode = false;
+
+    // Line-by-line state
+    let lines = []; // { reference, typed }
+    let currentLineIndex = 0;
     
     function init(elements) {
         containerElement = elements.container;
         textDisplayElement = elements.textDisplay;
         statsElement = elements.stats;
-
-        // Ensure elements exist
         if(!textDisplayElement) return;
-
-        // Requirement 5: Global keydown listener for seamless input
         document.addEventListener('keydown', handleKeyDown);
     }
 
-    function startRandom() {
-        const paragraphs = window.typingParagraphs || [];
-        if(paragraphs.length === 0) return;
-        
-        const randomIndex = Math.floor(Math.random() * paragraphs.length);
-        start(paragraphs[randomIndex]);
-    }
-
     function start(paragraphObj) {
+        if (!paragraphObj) return;
+        
         currentParagraph = paragraphObj;
-        targetText = paragraphObj.text;
-        typedText = "";
         timeElapsed = 0;
         isRunning = false;
-        isPaused = false; // Requirement 6: Ensure paused state is reset on start
+        isPaused = false;
         isActiveMode = true;
         startTime = null;
         
+        // Split text into lines
+        lines = splitTextIntoLines(paragraphObj.text).map(str => ({
+            reference: str,
+            typed: ""
+        }));
+        currentLineIndex = 0;
+        
         clearInterval(timerInterval);
-        
         renderText();
-        updateLiveStats();
         
-        // Show container
-        if (containerElement) {
-            containerElement.classList.remove('hidden');
-        }
+        if (containerElement) containerElement.classList.remove('hidden');
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') document.activeElement.blur();
+    }
 
-        // Help user by clearing any focused inputs that might steal keys
-        if (document.activeElement && document.activeElement.tagName === 'INPUT') {
-            document.activeElement.blur();
-        }
+    function splitTextIntoLines(text) {
+        const words = text.split(' ');
+        const resultLines = [];
+        let currentLine = "";
+        const maxChars = 65; // Balanced length for line-by-line UI
+
+        words.forEach(word => {
+            if ((currentLine + word).length > maxChars) {
+                resultLines.push(currentLine.trim());
+                currentLine = word + " ";
+            } else {
+                currentLine += word + " ";
+            }
+        });
+        if (currentLine) resultLines.push(currentLine.trim());
+        return resultLines;
     }
 
     function handleKeyDown(e) {
-        // Requirement 5 & 6: strictly check if mode is active and not paused
         if (!isActiveMode || isPaused) return;
 
-        // Starting logic
+        // Start timer on first keystroke
         if (!isRunning && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
             isRunning = true;
             startTime = Date.now();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-        
-        // Always block default scroll/navigation for space and backspace once active
-        if (e.key === ' ' || e.key === 'Backspace') {
-            e.preventDefault();
+            timerInterval = setInterval(() => {
+                if(!isPaused) {
+                    timeElapsed = Math.floor((Date.now() - startTime) / 1000);
+                    updateLiveStats();
+                }
+            }, 1000);
         }
 
-        if (!isRunning && e.key !== 'Backspace') return; // Allow corrections if somehow text exists
+        if (e.key === ' ' || e.key === 'Backspace') e.preventDefault();
+        if (!isRunning && e.key !== 'Backspace') return;
+
+        const currentLine = lines[currentLineIndex];
+        if (!currentLine) return;
 
         if (e.key === 'Backspace') {
-            typedText = typedText.slice(0, -1);
+            if (currentLine.typed.length > 0) {
+                currentLine.typed = currentLine.typed.slice(0, -1);
+            } else if (currentLineIndex > 0) {
+                // Potential feature: go back to previous line? 
+                // For now, keep it simple: stay on current line if empty.
+            }
         } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-            typedText += e.key;
-        } else {
-            return;
-        }
-        
-        const isFinished = typedText.length >= targetText.length;
+            currentLine.typed += e.key;
+        } else return;
         
         renderText();
-        
-        if (isFinished) {
-            finish();
-        }
-    }
 
-    function updateTimer() {
-        if (!isRunning || isPaused) return;
-        timeElapsed = Math.floor((Date.now() - startTime) / 1000);
-        updateLiveStats();
+        // Check if current line is finished
+        if (currentLine.typed.length >= currentLine.reference.length) {
+            currentLineIndex++;
+            if (currentLineIndex >= lines.length) {
+                finish();
+            } else {
+                renderText();
+            }
+        }
     }
 
     function renderText() {
         if (!textDisplayElement) return;
 
         let html = '';
-        let correctCount = 0;
+        lines.forEach((line, idx) => {
+            const isActive = idx === currentLineIndex;
+            const isCompleted = idx < currentLineIndex;
+            
+            html += `
+                <div class="paragraph-line-pair ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}">
+                    <div class="line-reference">${line.reference}</div>
+                    <div class="line-input-container">
+                        ${renderLineInput(line, isActive)}
+                    </div>
+                </div>
+            `;
+        });
         
-        for (let i = 0; i < targetText.length; i++) {
-            const char = targetText[i];
-            const typedChar = typedText[i];
+        textDisplayElement.innerHTML = html;
+        
+        // Auto-scroll to active line
+        const activeLineEl = textDisplayElement.querySelector('.paragraph-line-pair.active');
+        if (activeLineEl) {
+            activeLineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        updateLiveStats();
+    }
+
+    function renderLineInput(line, isActive) {
+        let lineHtml = '';
+        const target = line.reference;
+        const typed = line.typed;
+
+        for (let i = 0; i < target.length; i++) {
+            const char = target[i];
+            const typedChar = typed[i];
             
             let charClass = '';
             if (typedChar == null) {
                 charClass = 'untyped';
-                if(i === typedText.length) charClass += ' cursor';
+                // Show cursor only if active line and it's the current character
+                if (isActive && i === typed.length) {
+                    lineHtml += `<span class="cursor"></span>`;
+                }
             } else if (char === typedChar) {
                 charClass = 'correct';
-                correctCount++;
             } else {
                 charClass = 'incorrect';
             }
             
-            html += `<span class="${charClass}">${char === ' ' ? '&nbsp;' : char}</span>`;
+            lineHtml += `<span class="${charClass}">${char === ' ' ? '&nbsp;' : char}</span>`;
         }
         
-        textDisplayElement.innerHTML = html;
-        
-        // Live accuracy
-        let currentAcc = window.TypingAnalytics.calculateAccuracy(correctCount, typedText.length);
-        let currentWpm = window.TypingAnalytics.calculateWPM(correctCount, timeElapsed);
-        
-        if(statsElement) {
-            statsElement.innerHTML = `
-                <div class="stat-item">Хугацаа: <span>${window.TypingAnalytics.formatTime(timeElapsed)}</span></div>
-                <div class="stat-item">WPM: <span>${currentWpm}</span></div>
-                <div class="stat-item">Нарийвчлал: <span>${currentAcc}%</span></div>
-            `;
+        // If the line is finished and active, put cursor at the end
+        if (isActive && typed.length === target.length) {
+            lineHtml += `<span class="cursor"></span>`;
         }
+
+        return lineHtml;
     }
-    
+
     function updateLiveStats() {
-        if(!isRunning || isPaused) return;
-        let correctCount = 0;
-        for (let i = 0; i < typedText.length; i++) {
-            if (typedText[i] === targetText[i]) correctCount++;
-        }
-        let currentWpm = window.TypingAnalytics.calculateWPM(correctCount, timeElapsed);
-        let currentAcc = window.TypingAnalytics.calculateAccuracy(correctCount, typedText.length);
+        let totalCorrect = 0;
+        let totalTyped = 0;
+        
+        lines.forEach(line => {
+            totalTyped += line.typed.length;
+            for (let i = 0; i < line.typed.length; i++) {
+                if (line.typed[i] === line.reference[i]) totalCorrect++;
+            }
+        });
+
+        const wpm = window.TypingAnalytics.calculateWPM(totalCorrect, timeElapsed);
+        const acc = window.TypingAnalytics.calculateAccuracy(totalCorrect, totalTyped);
         
         if(statsElement) {
             statsElement.innerHTML = `
                 <div class="stat-item">Хугацаа: <span>${window.TypingAnalytics.formatTime(timeElapsed)}</span></div>
-                <div class="stat-item">WPM: <span>${currentWpm}</span></div>
-                <div class="stat-item">Нарийвчлал: <span>${currentAcc}%</span></div>
+                <div class="stat-item">WPM: <span>${wpm}</span></div>
+                <div class="stat-item">Нарийвчлал: <span>${acc}%</span></div>
             `;
         }
     }
@@ -165,17 +193,21 @@ window.ParagraphMode = (function() {
         isActiveMode = false;
         clearInterval(timerInterval);
         
-        let correctCount = 0;
-        for (let i = 0; i < typedText.length; i++) {
-            if (typedText[i] === targetText[i]) correctCount++;
-        }
+        let totalCorrect = 0;
+        let totalTyped = 0;
+        lines.forEach(line => {
+            totalTyped += line.typed.length;
+            for (let i = 0; i < line.typed.length; i++) {
+                if (line.typed[i] === line.reference[i]) totalCorrect++;
+            }
+        });
         
-        const finalWpm = window.TypingAnalytics.calculateWPM(correctCount, timeElapsed);
-        const finalAcc = window.TypingAnalytics.calculateAccuracy(correctCount, typedText.length);
+        const finalWpm = window.TypingAnalytics.calculateWPM(totalCorrect, timeElapsed);
+        const finalAcc = window.TypingAnalytics.calculateAccuracy(totalCorrect, totalTyped);
         
         const stats = {
             "Зарцуулсан хугацаа": window.TypingAnalytics.formatTime(timeElapsed),
-            "Бичсэн үсгийн тоо": typedText.length,
+            "Бичсэн үсгийн тоо": totalTyped,
             "WPM (Үг/минут)": finalWpm,
             "Нарийвчлал": finalAcc + "%"
         };
@@ -185,29 +217,11 @@ window.ParagraphMode = (function() {
         }
     }
 
-    function pause() {
-        if (!isRunning || isPaused) return;
-        isPaused = true;
-        pauseStartTime = Date.now();
-        clearInterval(timerInterval);
-    }
-
-    function resume() {
-        if (!isPaused) return;
-        isPaused = false;
-        if (startTime && pauseStartTime > 0) {
-            const pausedDuration = Date.now() - pauseStartTime;
-            startTime += pausedDuration;
-        }
-        timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function stop() {
-        isRunning = false;
-        isActiveMode = false;
-        isPaused = false;
-        clearInterval(timerInterval);
-    }
-
-    return { init, startRandom, start, stop, pause, resume };
+    return { 
+        init, 
+        start, 
+        stop: () => { isRunning = false; isActiveMode = false; clearInterval(timerInterval); }, 
+        pause: () => { isPaused = true; pauseStartTime = Date.now(); }, 
+        resume: () => { isPaused = false; if(startTime) startTime += (Date.now() - pauseStartTime); } 
+    };
 })();

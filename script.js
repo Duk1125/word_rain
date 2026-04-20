@@ -36,6 +36,7 @@ const AppController = (function() {
     let activeMode = null; // 'word-rain', 'paragraph', 'keyboard'
     let currentWRDiff = { speed: 1.4, spawn: 1.4, key: 'level2' };
     let currentKBStage = 0;
+    let selectedParagraph = null; // Track selected paragraph for mode start
 
     const pauseModal = document.getElementById('pause-modal');
 
@@ -137,6 +138,7 @@ const AppController = (function() {
                 if(mode === 'word-rain') {
                     showScreen(prepWordRain);
                 } else if(mode === 'paragraph') {
+                    populateParagraphList();
                     showScreen(prepParagraph);
                 } else if(mode === 'keyboard') {
                     showScreen(prepKeyboard);
@@ -260,7 +262,11 @@ const AppController = (function() {
             window.WordRain.start(currentWRDiff.speed, currentWRDiff.spawn, currentWRDiff.key);
         } else if(mode === 'paragraph') {
             showScreen(paragraphContainer);
-            window.ParagraphMode.startRandom();
+            // Requirement 8: Start with selected paragraph
+            if (!selectedParagraph && window.typingParagraphs.length > 0) {
+                selectedParagraph = window.typingParagraphs[0];
+            }
+            window.ParagraphMode.start(selectedParagraph);
         } else if(mode === 'keyboard') {
             showScreen(keyboardContainer);
             window.KeyboardMode.start(currentKBStage);
@@ -309,6 +315,39 @@ const AppController = (function() {
             fontSizeSection.style.display = isKeyboardActive ? 'none' : 'block';
         }
         settingsModal.classList.remove('hidden');
+    }
+
+    // --- Selection UI Helpers ---
+    function populateParagraphList() {
+        const listEl = document.getElementById('paragraph-selection-list');
+        if (!listEl) return;
+
+        const paragraphs = window.typingParagraphs || [];
+        listEl.innerHTML = '';
+
+        paragraphs.forEach((p, index) => {
+            const item = document.createElement('div');
+            item.className = 'paragraph-item';
+            if (selectedParagraph && selectedParagraph.id === p.id) {
+                item.classList.add('selected');
+            } else if (!selectedParagraph && index === 0) {
+                item.classList.add('selected');
+                selectedParagraph = p;
+            }
+
+            item.innerHTML = `
+                <div class="paragraph-item-title">${p.title}</div>
+                <div class="paragraph-item-preview">${p.text.substring(0, 60)}...</div>
+            `;
+
+            item.onclick = () => {
+                document.querySelectorAll('.paragraph-item').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+                selectedParagraph = p;
+            };
+
+            listEl.appendChild(item);
+        });
     }
 
     // --- Settings Logic ---

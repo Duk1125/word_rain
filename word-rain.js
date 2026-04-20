@@ -36,10 +36,7 @@ window.WordRain = (function() {
             let allWords = window.mongolianWords || [];
             let filteredWords = [];
             
-            let targetDiff = 2; // Default
-            if (difficultyKey === 'level1') targetDiff = 1;
-            if (difficultyKey === 'level3') targetDiff = 3;
-            if (difficultyKey === 'level4') targetDiff = 4;
+            let targetDiff = (difficultyKey === 'level1') ? 1 : (difficultyKey === 'level3' ? 3 : (difficultyKey === 'level4' ? 4 : 2));
 
             filteredWords = allWords.filter(w => w.difficulty <= targetDiff).map(w => w.word);
             
@@ -56,8 +53,6 @@ window.WordRain = (function() {
     }
 
     const wordBag = new WordBag();
-
-    // Elements
     let gameArea, scoreElement, livesElement, wordInput;
 
     function init(elements) {
@@ -87,11 +82,8 @@ window.WordRain = (function() {
             missedWordsList: []
         };
 
-        const baseSpawnRate = 1830;
-        const baseFallSpeed = 64;
-
-        spawnRate = baseSpawnRate * (spawnMult || 1.4);
-        fallSpeed = baseFallSpeed * (speedMult || 1.4);
+        spawnRate = 1830 * (spawnMult || 1.4);
+        fallSpeed = 64 * (speedMult || 1.4);
 
         lastFrameTime = performance.now();
         activeWords.forEach(w => w.element.remove());
@@ -116,20 +108,7 @@ window.WordRain = (function() {
         wordEl.textContent = wordText;
 
         const maxLeft = gameArea.clientWidth - 150;
-        let leftPos;
-        let attempts = 0;
-        const minHorizontalGap = 100;
-
-        do {
-            leftPos = Math.random() * maxLeft;
-            var tooClose = activeWords.some(w => {
-                if (w.y < gameArea.clientHeight * 0.3) {
-                    return Math.abs(parseFloat(w.element.style.left) - leftPos) < minHorizontalGap;
-                }
-                return false;
-            });
-            attempts++;
-        } while (tooClose && attempts < 10);
+        let leftPos = Math.random() * maxLeft;
 
         wordEl.style.left = `${Math.max(10, leftPos)}px`;
         wordEl.style.top = '0px';
@@ -151,7 +130,6 @@ window.WordRain = (function() {
         });
 
         stats.totalSpawned++;
-        if (spawnRate > 500) spawnRate -= 10;
     }
 
     function checkInput(e) {
@@ -165,24 +143,15 @@ window.WordRain = (function() {
 
         if (matchIndex !== -1) {
             const wordObj = activeWords[matchIndex];
-            const typedTime = Date.now();
-            const timeTaken = typedTime - wordObj.spawnTime;
-            
             stats.totalTyped++;
-            stats.wordTimes.push({ word: wordObj.text, timeMs: timeTaken });
+            stats.wordTimes.push({ word: wordObj.text, timeMs: Date.now() - wordObj.spawnTime });
 
-            createExplosion(wordObj.element);
             wordObj.element.remove();
             activeWords.splice(matchIndex, 1);
 
             score += wordObj.text.length;
-            fallSpeed += 0.4;
-            
             updateStats();
             e.target.value = '';
-        } else if (typed.length > 5 && !activeWords.some(w => w.text.toLowerCase().startsWith(typed.toLowerCase()))) {
-            wordInput.classList.add('shake');
-            setTimeout(() => wordInput.classList.remove('shake'), 400);
         }
     }
 
@@ -195,17 +164,15 @@ window.WordRain = (function() {
 
         const deltaTime = (timestamp - lastFrameTime) / 1000;
         lastFrameTime = timestamp;
-        const gameHeight = gameArea.clientHeight;
 
         for (let i = activeWords.length - 1; i >= 0; i--) {
             const wordObj = activeWords[i];
             wordObj.y += fallSpeed * deltaTime;
             wordObj.element.style.transform = `translate3d(0, ${wordObj.y.toFixed(1)}px, 0)`;
 
-            if (wordObj.y > gameHeight - 50) {
+            if (wordObj.y > gameArea.clientHeight - 50) {
                 stats.totalMissed++;
                 stats.missedWordsList.push(wordObj.text);
-                
                 loseLife();
                 wordObj.element.remove();
                 activeWords.splice(i, 1);
@@ -215,55 +182,9 @@ window.WordRain = (function() {
         gameInterval = requestAnimationFrame(gameLoop);
     }
 
-    function createExplosion(element) {
-        const text = element.textContent;
-        const rect = element.getBoundingClientRect();
-        
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.left = `${rect.left}px`;
-        container.style.top = `${rect.top}px`;
-        container.style.width = 'max-content';
-        container.style.display = 'flex';
-        container.style.pointerEvents = 'none';
-        container.style.zIndex = '100';
-        document.body.appendChild(container);
-
-        text.split('').forEach((char) => {
-            const span = document.createElement('span');
-            span.textContent = char;
-            span.style.display = 'inline-block';
-            span.style.color = '#ff00ff';
-            span.style.textShadow = '0 0 15px rgba(255, 0, 255, 0.8)';
-            span.style.fontSize = 'var(--game-font-size)';
-            span.style.fontWeight = '600';
-            span.style.fontFamily = 'var(--font-heading)';
-            span.style.transition = 'all 0.5s ease-out';
-            
-            const randomX = (Math.random() - 0.5) * 150;
-            const randomY = (Math.random() - 0.5) * 150 - 50;
-            const randomRot = (Math.random() - 0.5) * 180;
-            
-            container.appendChild(span);
-            
-            requestAnimationFrame(() => {
-                span.style.transform = `translate(${randomX}px, ${randomY}px) rotate(${randomRot}deg) scale(0)`;
-                span.style.opacity = '0';
-            });
-        });
-
-        setTimeout(() => container.remove(), 500);
-    }
-
     function loseLife() {
         lives--;
         updateStats();
-
-        gameArea.style.boxShadow = '0 0 50px rgba(255, 50, 50, 0.5)';
-        setTimeout(() => {
-            gameArea.style.boxShadow = '0 0 20px rgba(0, 255, 204, 0.2)';
-        }, 200);
-
         if (lives <= 0) endGame();
     }
 
@@ -273,7 +194,7 @@ window.WordRain = (function() {
             livesElement.innerHTML = '';
             for (let i = 0; i < lives; i++) {
                 const heart = document.createElement('span');
-                heart.classList.add('heart-icon');
+                heart.className = 'heart-icon';
                 heart.textContent = '❤️';
                 livesElement.appendChild(heart);
             }
@@ -294,25 +215,33 @@ window.WordRain = (function() {
     }
 
     function generateAnalytics() {
-        // Requirement 2 & 3: Replace "Total Missed" with "Words to watch out for"
-        const sortedTimes = [...stats.wordTimes].sort((a,b) => b.timeMs - a.timeMs);
-        const slowest = sortedTimes.slice(0, 3).map(w => w.word);
-        
-        // Combine missed words and slowest words for "Attention Words"
+        // Requirement 1, 2, 4, 16: Redesign summary card and missed words list
         const uniqueMissed = [...new Set(stats.missedWordsList)];
-        const cautionWords = [...new Set([...uniqueMissed, ...slowest])].slice(0, 8);
+        
+        // Generate summary text (Requirement 2)
+        let summaryText = "Сайн бичлээ!";
+        
+        const avgTime = stats.totalTyped > 0 ? (stats.wordTimes.reduce((acc, val) => acc + val.timeMs, 0) / stats.totalTyped) : 0;
+        const longWordsSlow = stats.wordTimes.filter(w => w.word.length > 6 && w.timeMs > 3000).length;
 
-        let avgTime = 0;
-        if(stats.wordTimes.length > 0) {
-            const sum = stats.wordTimes.reduce((acc, val) => acc + val.timeMs, 0);
-            avgTime = sum / stats.wordTimes.length;
+        if (stats.totalMissed > 5) {
+            summaryText = "Олон үг алдсан";
+        } else if (longWordsSlow > 2) {
+            summaryText = "Урт үгс дээр саатсан";
+        } else if (avgTime > 2500) {
+            summaryText = "Хурд удаан байна";
+        } else if (stats.totalMissed > 0) {
+            summaryText = "Зарим үгийг алдсан";
+        } else {
+            summaryText = "Маш сайн, алдаагүй!";
         }
 
         return {
             "Оноо": score,
             "Нийт бичсэн үг": stats.totalTyped,
             "Дундаж хугацаа (үгсэд)": stats.totalTyped > 0 ? (avgTime/1000).toFixed(2) + "с" : "N/A",
-            "Анхаарах ёстой үсэг": cautionWords // Requirement 3: final label must be "Анхаарах ёстой үсэг"
+            "Анхаарах зүйл": summaryText, // Requirement 1: short summary card
+            "Анхаарах ёстой үгс": uniqueMissed.slice(0, 10) // Requirement 4: separate list (actual missed words only)
         };
     }
 
@@ -331,5 +260,5 @@ window.WordRain = (function() {
         activeWords = [];
     }
 
-    return { init, start, stop, togglePause, getScore: () => score };
+    return { init, start, stop, togglePause };
 })();

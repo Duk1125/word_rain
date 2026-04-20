@@ -5,7 +5,7 @@
 window.TypingAnalytics = {
     // Calculates Words Per Minute
     // standard calculation: 5 characters = 1 word
-    calculateWPM: function(correctChars, timeInSeconds) {
+    calculateWPM: function (correctChars, timeInSeconds) {
         if (timeInSeconds === 0) return 0;
         const minutes = timeInSeconds / 60;
         const words = correctChars / 5;
@@ -13,22 +13,22 @@ window.TypingAnalytics = {
     },
 
     // Calculates Accuracy percentage
-    calculateAccuracy: function(correctChars, totalTypedChars) {
+    calculateAccuracy: function (correctChars, totalTypedChars) {
         if (totalTypedChars === 0) return 0;
         return Math.round((correctChars / totalTypedChars) * 100);
     },
 
     // Formats seconds into MM:SS
-    formatTime: function(seconds) {
+    formatTime: function (seconds) {
         const m = Math.floor(seconds / 60);
         const s = Math.floor(seconds % 60);
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     },
 
     // Shows standard analytic results modal
-    showResultsModal: function(modeName, statsData, actionCallback) {
+    showResultsModal: function (modeName, statsData, actionCallback) {
         let resultsHtml = `<h2>${modeName} - Үр дүн</h2>`;
-        
+
         // We want to handle arrays (lists) with priority for "Attention" words
         resultsHtml += `<div class="analytics-grid">`;
         for (const [key, value] of Object.entries(statsData)) {

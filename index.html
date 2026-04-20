@@ -177,10 +177,15 @@
     </div>
 
     <div id="prep-paragraph" class="hidden prep-screen app-container">
-        <div class="prep-content">
-            <h2>Эх бичих</h2>
-            <p>Урт хэмжээний эхийг бичиж хурд (WPM), нарийвчлалаа хэмжих.</p>
-            <div class="prep-actions">
+        <div class="prep-content" style="max-width: 800px;">
+            <h2>Эх бичих дадлага</h2>
+            <p>Дадлага хийх бичвэрээ сонгоно уу:</p>
+            
+            <div id="paragraph-selection-list" class="paragraph-list">
+                <!-- Paragraph items injected here via JS -->
+            </div>
+
+            <div class="prep-actions" style="margin-top: 30px;">
                 <button class="primary-btn real-start-btn" data-mode="paragraph">Эхлэх</button>
                 <button class="text-btn back-to-menu-btn">Буцах</button>
             </div>
