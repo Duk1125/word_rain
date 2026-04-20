@@ -375,10 +375,25 @@ const AppController = (function() {
     }
 
     function showGameStatsMenu(modeName, statsData, restartCallback) {
-        window.TypingAnalytics.showResultsModal(modeName, statsData, {
+        const actions = {
             restart: restartCallback,
             menu: () => showScreen(startScreen)
-        });
+        };
+
+        // Requirement 4: Add leaderboard callback only for Word Rain to show the leaderboard button
+        if (modeName === "Үгэн бороо") {
+            actions.leaderboard = () => {
+                // Determine which level difficulty was played
+                const diffKey = currentWRDiff.key; 
+                leaderboardModal.classList.remove('hidden');
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.tab === diffKey);
+                });
+                renderLeaderboard(diffKey);
+            };
+        }
+
+        window.TypingAnalytics.showResultsModal(modeName, statsData, actions);
     }
 
     // --- Legacy Leaderboard Logic ---

@@ -56,9 +56,10 @@ window.TypingAnalytics = {
         }
 
         resultsHtml += `
-            <div class="game-over-buttons" style="margin-top: 20px;">
-                <button id="modal-restart-btn" class="primary-btn">Дахин эхлэх</button>
-                <button id="modal-menu-btn" class="text-btn">Үндсэн цэс рүү буцах</button>
+            <div class="game-over-buttons" style="margin-top: 25px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                <button id="modal-restart-btn" class="primary-btn" style="width: 100%; max-width: 280px;">Дахин эхлэх</button>
+                <button id="modal-leaderboard-btn" class="secondary-btn" style="width: 100%; max-width: 280px; display: none;">🏆 Тэргүүлэгчид үзэх 🏆</button>
+                <button id="modal-menu-btn" class="text-btn" style="margin-top: 5px;">Үндсэн цэс рүү буцах</button>
             </div>
         `;
 
@@ -72,6 +73,18 @@ window.TypingAnalytics = {
         `;
 
         document.body.appendChild(modalOverlay);
+
+        if (actionCallback && actionCallback.leaderboard) {
+            const lbBtn = document.getElementById('modal-leaderboard-btn');
+            lbBtn.style.display = 'block';
+            lbBtn.onclick = () => {
+                // Don't close results modal yet? User might want to go back.
+                // But typically modals don't stack well if not designed for it.
+                // We'll close it and open leaderboard.
+                modalOverlay.remove();
+                actionCallback.leaderboard();
+            };
+        }
 
         document.getElementById('modal-restart-btn').addEventListener('click', () => {
             modalOverlay.remove();
