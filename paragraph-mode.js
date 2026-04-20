@@ -82,9 +82,6 @@ window.ParagraphMode = (function() {
         if (e.key === 'Backspace') {
             if (currentLine.typed.length > 0) {
                 currentLine.typed = currentLine.typed.slice(0, -1);
-            } else if (currentLineIndex > 0) {
-                // Potential feature: go back to previous line? 
-                // For now, keep it simple: stay on current line if empty.
             }
         } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
             currentLine.typed += e.key;
@@ -137,24 +134,30 @@ window.ParagraphMode = (function() {
         const target = line.reference;
         const typed = line.typed;
 
+        // Requirement 1 & 2: Show typedChar for incorrect entries, not reference char
         for (let i = 0; i < target.length; i++) {
             const char = target[i];
             const typedChar = typed[i];
             
             let charClass = '';
+            let displayChar = char; // Default to reference char for untyped or correct
+
             if (typedChar == null) {
                 charClass = 'untyped';
+                displayChar = char;
                 // Show cursor only if active line and it's the current character
                 if (isActive && i === typed.length) {
                     lineHtml += `<span class="cursor"></span>`;
                 }
             } else if (char === typedChar) {
                 charClass = 'correct';
+                displayChar = char;
             } else {
                 charClass = 'incorrect';
+                displayChar = typedChar; // Show actual typo
             }
             
-            lineHtml += `<span class="${charClass}">${char === ' ' ? '&nbsp;' : char}</span>`;
+            lineHtml += `<span class="${charClass}">${displayChar === ' ' ? '&nbsp;' : displayChar}</span>`;
         }
         
         // If the line is finished and active, put cursor at the end
