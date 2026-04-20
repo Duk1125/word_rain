@@ -251,6 +251,9 @@ const AppController = (function() {
 
     // --- Mode Control Logic ---
     function startMode(mode) {
+        // Requirement 5 & 6: stop any ongoing mode to ensure clean isActiveMode/isPaused states
+        stopCurrentMode();
+        
         activeMode = mode;
         if(mode === 'word-rain') {
             showScreen(wordRainContainer);

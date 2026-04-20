@@ -29,6 +29,7 @@ window.TypingAnalytics = {
     showResultsModal: function(modeName, statsData, actionCallback) {
         let resultsHtml = `<h2>${modeName} - Үр дүн</h2>`;
         
+        // We want to handle arrays (lists) with priority for "Attention" words
         resultsHtml += `<div class="analytics-grid">`;
         for (const [key, value] of Object.entries(statsData)) {
             if (Array.isArray(value)) { continue; } // Handle lists separately
@@ -41,9 +42,10 @@ window.TypingAnalytics = {
         }
         resultsHtml += `</div>`;
 
-        // Handle arrays (e.g. slowest words, missed words)
+        // Handle arrays (e.g. slowest words, missed words, or the new Attention words)
         for (const [key, value] of Object.entries(statsData)) {
             if (Array.isArray(value) && value.length > 0) {
+                // Requirement 3 & 4: label is accurately shown from statsData (e.g. "Анхаарах ёстой үсэг")
                 resultsHtml += `
                     <div class="analytics-list-section">
                         <h3>${key}</h3>
@@ -55,11 +57,12 @@ window.TypingAnalytics = {
             }
         }
 
+        // Requirement 1: "🏆 Тэргүүлэгчид үзэх 🏆" now uses text-btn style like "Үндсэн цэс рүү буцах"
         resultsHtml += `
             <div class="game-over-buttons" style="margin-top: 25px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <button id="modal-restart-btn" class="primary-btn" style="width: 100%; max-width: 280px;">Дахин эхлэх</button>
-                <button id="modal-leaderboard-btn" class="secondary-btn" style="width: 100%; max-width: 280px; display: none;">🏆 Тэргүүлэгчид үзэх 🏆</button>
-                <button id="modal-menu-btn" class="text-btn" style="margin-top: 5px;">Үндсэн цэс рүү буцах</button>
+                <button id="modal-leaderboard-btn" class="text-btn" style="margin-top: 10px; display: none; font-size: 1.1rem; color: var(--primary-color);">🏆 Тэргүүлэгчид үзэх 🏆</button>
+                <button id="modal-menu-btn" class="text-btn" style="margin-top: 2px;">Үндсэн цэс рүү буцах</button>
             </div>
         `;
 
@@ -78,9 +81,6 @@ window.TypingAnalytics = {
             const lbBtn = document.getElementById('modal-leaderboard-btn');
             lbBtn.style.display = 'block';
             lbBtn.onclick = () => {
-                // Don't close results modal yet? User might want to go back.
-                // But typically modals don't stack well if not designed for it.
-                // We'll close it and open leaderboard.
                 modalOverlay.remove();
                 actionCallback.leaderboard();
             };

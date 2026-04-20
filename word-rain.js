@@ -36,14 +36,11 @@ window.WordRain = (function() {
             let allWords = window.mongolianWords || [];
             let filteredWords = [];
             
-            // Map keys back to difficulty levels in words.js setup
-            // 1.0 -> level1, 1.4 -> level2, 2.0 -> level3, 2.8 -> level4
             let targetDiff = 2; // Default
             if (difficultyKey === 'level1') targetDiff = 1;
             if (difficultyKey === 'level3') targetDiff = 3;
             if (difficultyKey === 'level4') targetDiff = 4;
 
-            // Simple fallback logic since we refactored
             filteredWords = allWords.filter(w => w.difficulty <= targetDiff).map(w => w.word);
             
             if (filteredWords.length === 0) filteredWords = allWords.map(w => w.word);
@@ -93,8 +90,8 @@ window.WordRain = (function() {
         const baseSpawnRate = 1830;
         const baseFallSpeed = 64;
 
-        spawnRate = baseSpawnRate * spawnMult;
-        fallSpeed = baseFallSpeed * speedMult;
+        spawnRate = baseSpawnRate * (spawnMult || 1.4);
+        fallSpeed = baseFallSpeed * (speedMult || 1.4);
 
         lastFrameTime = performance.now();
         activeWords.forEach(w => w.element.remove());
@@ -150,7 +147,7 @@ window.WordRain = (function() {
             element: wordEl,
             text: wordText,
             y: -40,
-            spawnTime: Date.now() // Tracking start time
+            spawnTime: Date.now()
         });
 
         stats.totalSpawned++;
@@ -288,20 +285,23 @@ window.WordRain = (function() {
         cancelAnimationFrame(gameInterval);
         clearInterval(spawnInterval);
         
-        // Ensure final word states are cleared
         activeWords.forEach(w => w.element.remove());
         activeWords = [];
 
-        // Save score if Main controller wants to
         if(window.AppController && window.AppController.handleWordRainEnd) {
             window.AppController.handleWordRainEnd(score, currentDifficulty, generateAnalytics());
         }
     }
 
     function generateAnalytics() {
+        // Requirement 2 & 3: Replace "Total Missed" with "Words to watch out for"
         const sortedTimes = [...stats.wordTimes].sort((a,b) => b.timeMs - a.timeMs);
-        const top5Slowest = sortedTimes.slice(0, 5).map(w => `${w.word} (${(w.timeMs/1000).toFixed(1)}s)`);
+        const slowest = sortedTimes.slice(0, 3).map(w => w.word);
         
+        // Combine missed words and slowest words for "Attention Words"
+        const uniqueMissed = [...new Set(stats.missedWordsList)];
+        const cautionWords = [...new Set([...uniqueMissed, ...slowest])].slice(0, 8);
+
         let avgTime = 0;
         if(stats.wordTimes.length > 0) {
             const sum = stats.wordTimes.reduce((acc, val) => acc + val.timeMs, 0);
@@ -311,10 +311,8 @@ window.WordRain = (function() {
         return {
             "Оноо": score,
             "Нийт бичсэн үг": stats.totalTyped,
-            "Нийт алдсан үг": stats.totalMissed,
             "Дундаж хугацаа (үгсэд)": stats.totalTyped > 0 ? (avgTime/1000).toFixed(2) + "с" : "N/A",
-            "Хамгийн удаан бичсэн Top 5": top5Slowest,
-            "Алдсан үгс": [...new Set(stats.missedWordsList)] // Unique missed words
+            "Анхаарах ёстой үсэг": cautionWords // Requirement 3: final label must be "Анхаарах ёстой үсэг"
         };
     }
 

@@ -1,7 +1,6 @@
 window.ParagraphMode = (function() {
     let containerElement;
     let textDisplayElement;
-    let inputElement;
     let statsElement;
     
     let currentParagraph = null;
@@ -9,6 +8,8 @@ window.ParagraphMode = (function() {
     let startTime;
     let timeElapsed = 0; // seconds
     let isRunning = false;
+    let isPaused = false;
+    let pauseStartTime = 0;
     
     let targetText = "";
     let typedText = "";
@@ -23,6 +24,7 @@ window.ParagraphMode = (function() {
         // Ensure elements exist
         if(!textDisplayElement) return;
 
+        // Requirement 5: Global keydown listener for seamless input
         document.addEventListener('keydown', handleKeyDown);
     }
 
@@ -40,6 +42,7 @@ window.ParagraphMode = (function() {
         typedText = "";
         timeElapsed = 0;
         isRunning = false;
+        isPaused = false; // Requirement 6: Ensure paused state is reset on start
         isActiveMode = true;
         startTime = null;
         
@@ -48,29 +51,34 @@ window.ParagraphMode = (function() {
         renderText();
         updateLiveStats();
         
-        // Show container if not handled by root
-        containerElement.classList.remove('hidden');
+        // Show container
+        if (containerElement) {
+            containerElement.classList.remove('hidden');
+        }
+
+        // Help user by clearing any focused inputs that might steal keys
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+            document.activeElement.blur();
+        }
     }
 
-    let isPaused = false;
-    let pauseStartTime = 0;
-
     function handleKeyDown(e) {
+        // Requirement 5 & 6: strictly check if mode is active and not paused
         if (!isActiveMode || isPaused) return;
 
+        // Starting logic
         if (!isRunning && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-            // Start timer on first keystroke
             isRunning = true;
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
         }
         
-        if (!isRunning) return;
-
-        // Prevent browser default actions for spacebar and backspace when playing
+        // Always block default scroll/navigation for space and backspace once active
         if (e.key === ' ' || e.key === 'Backspace') {
             e.preventDefault();
         }
+
+        if (!isRunning && e.key !== 'Backspace') return; // Allow corrections if somehow text exists
 
         if (e.key === 'Backspace') {
             typedText = typedText.slice(0, -1);
@@ -96,7 +104,8 @@ window.ParagraphMode = (function() {
     }
 
     function renderText() {
-        // Build character by character HTML
+        if (!textDisplayElement) return;
+
         let html = '';
         let correctCount = 0;
         
@@ -107,7 +116,6 @@ window.ParagraphMode = (function() {
             let charClass = '';
             if (typedChar == null) {
                 charClass = 'untyped';
-                // Mark cursor position loosely
                 if(i === typedText.length) charClass += ' cursor';
             } else if (char === typedChar) {
                 charClass = 'correct';
@@ -187,7 +195,7 @@ window.ParagraphMode = (function() {
     function resume() {
         if (!isPaused) return;
         isPaused = false;
-        if (startTime) {
+        if (startTime && pauseStartTime > 0) {
             const pausedDuration = Date.now() - pauseStartTime;
             startTime += pausedDuration;
         }
