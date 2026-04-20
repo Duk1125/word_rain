@@ -299,12 +299,11 @@ const AppController = (function() {
     }
 
     function openSettings() {
-        // Filter Font Size setting only for Word Rain
+        // Requirement 6: Hide size-options only for Keyboard mode
         const fontSizeSection = document.getElementById('font-size-section');
         if (fontSizeSection) {
-            // Should show if activeMode is word-rain OR if we are on prep screen for word-rain
-            const isWordRainActive = activeMode === 'word-rain' || (!activeMode && !prepWordRain.classList.contains('hidden'));
-            fontSizeSection.style.display = isWordRainActive ? 'block' : 'none';
+            const isKeyboardActive = activeMode === 'keyboard' || (!activeMode && !prepKeyboard.classList.contains('hidden'));
+            fontSizeSection.style.display = isKeyboardActive ? 'none' : 'block';
         }
         settingsModal.classList.remove('hidden');
     }

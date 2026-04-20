@@ -619,10 +619,17 @@ header {
     background: rgba(15, 15, 25, 0.95);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    max-width: 420px;
-    padding: 35px;
-    border-radius: 24px;
+    max-width: 440px;
+    padding: 40px 30px;
+    border-radius: 28px;
     text-align: center;
+}
+
+.pause-content .modal-header {
+    justify-content: center;
+    border-bottom: none;
+    margin-bottom: 10px;
+    padding: 0;
 }
 
 .pause-actions {
@@ -636,14 +643,28 @@ header {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
-    padding: 20px;
-    border-radius: 16px;
-    font-size: 2.5rem;
+    padding: 24px 15px;
+    border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 12px;
+}
+
+.pause-icon {
+    font-size: 2.4rem;
+    line-height: 1;
+}
+
+.pause-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: none;
+    letter-spacing: 0.5px;
 }
 
 .pause-opt-btn:hover {
@@ -964,10 +985,10 @@ header {
 .difficulty-buttons.mini {
     width: 100%;
     margin: 15px 0 4px;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, auto);
-    gap: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
 }
 
 .diff-item {
@@ -978,9 +999,10 @@ header {
 }
 
 .difficulty-buttons.mini .diff-btn {
-    height: 48px;
-    padding: 5px 8px;
-    font-size: 1rem;
+    height: 44px;
+    min-width: 80px;
+    padding: 5px 12px;
+    font-size: 0.95rem;
 }
 
 .diff-label {

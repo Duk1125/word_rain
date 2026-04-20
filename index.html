@@ -122,8 +122,7 @@
 
             <div class="difficulty-select">
                 <p>Шат сонгох:</p>
-                <div class="difficulty-buttons mini" id="keyboard-stage-select"
-                    style="grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, auto);">
+                <div class="difficulty-buttons mini" id="keyboard-stage-select">
                     <button class="diff-btn selected" data-stage="0">1-р шат</button>
                     <button class="diff-btn" data-stage="1">2-р шат</button>
                     <button class="diff-btn" data-stage="2">3-р шат</button>
@@ -191,14 +190,14 @@
         <button class="icon-only-btn settings-btn-bottom-left" aria-label="Settings">⚙️</button>
     </div>
 
-    <div id="settings-modal" class="hidden">
+    <div id="settings-modal" class="hidden modal-overlay" style="z-index: 4000;">
         <div class="modal-content settings-content">
             <div class="modal-header">
                 <h2>⚙️ Тохиргоо</h2>
                 <button id="close-settings" class="close-btn">&times;</button>
             </div>
             <div class="settings-body">
-                <div class="setting-group">
+                <div class="setting-group" id="font-size-section">
                     <h3>Үсгийн хэмжээ</h3>
                     <div class="size-options">
                         <button class="size-btn" data-size="very-small" style="font-size: 1.4rem;">Aa</button>
@@ -234,17 +233,29 @@
     </div>
 
     <!-- Universal Pause Modal -->
-    <div id="pause-modal" class="hidden modal-overlay">
+    <div id="pause-modal" class="hidden modal-overlay" style="z-index: 3000;">
         <div class="modal-content pause-content">
-            <div class="modal-header">
-                <h2>ТҮР ЗОГСООВ</h2>
+            <div class="modal-header" style="justify-content: center;">
+                <h2 style="margin: 0;">ТҮР ЗОГСООВ</h2>
             </div>
             <div class="pause-body">
                 <div class="pause-actions">
-                    <button id="pause-resume-btn" class="pause-opt-btn" title="Үргэлжлүүлэх">▶️</button>
-                    <button id="pause-restart-btn" class="pause-opt-btn" title="Дахин эхлэх">🔄</button>
-                    <button id="pause-settings-btn" class="pause-opt-btn" title="Тохиргоо">⚙️</button>
-                    <button id="pause-home-btn" class="pause-opt-btn" title="Үндсэн цэс">🏠</button>
+                    <button id="pause-resume-btn" class="pause-opt-btn" title="Үргэлжлүүлэх">
+                        <span class="pause-icon">▶️</span>
+                        <span class="pause-label">Үргэлжлүүлэх</span>
+                    </button>
+                    <button id="pause-restart-btn" class="pause-opt-btn" title="Дахин эхлэх">
+                        <span class="pause-icon">🔄</span>
+                        <span class="pause-label">Дахин эхлэх</span>
+                    </button>
+                    <button id="pause-settings-btn" class="pause-opt-btn" title="Тохиргоо">
+                        <span class="pause-icon">⚙️</span>
+                        <span class="pause-label">Тохиргоо</span>
+                    </button>
+                    <button id="pause-home-btn" class="pause-opt-btn" title="Үндсэн цэс">
+                        <span class="pause-icon">🏠</span>
+                        <span class="pause-label">Нүүр</span>
+                    </button>
                 </div>
             </div>
         </div>
