@@ -45,7 +45,7 @@ window.TypingAnalytics = {
         // Handle arrays (e.g. slowest words, missed words, or the new Attention words)
         for (const [key, value] of Object.entries(statsData)) {
             if (Array.isArray(value) && value.length > 0) {
-                // Requirement 3 & 4: label is accurately shown from statsData (e.g. "Анхаарах ёстой үсэг")
+                // Requirement 3 & 4: label is accurately shown from statsData (e.g. "Анхаарах ёстой үг")
                 resultsHtml += `
                     <div class="analytics-list-section">
                         <h3>${key}</h3>
