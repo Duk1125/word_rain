@@ -10,6 +10,8 @@ window.WordRain = (function() {
     let fallSpeed = 120;
     let isPaused = false;
     let lastFrameTime = 0;
+    let pendingEndGameTimeout = null;
+    const MISSED_WORD_FEEDBACK_MS = 380;
     
     // Analytics tracking
     let stats = {
@@ -63,7 +65,10 @@ window.WordRain = (function() {
 
         wordInput.addEventListener('input', checkInput);
         wordInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') wordInput.value = '';
+            if (e.key === 'Enter') {
+                wordInput.value = '';
+                refreshWordVisualState('');
+            }
         });
     }
 
@@ -73,6 +78,10 @@ window.WordRain = (function() {
         score = 0;
         lives = 5;
         currentDifficulty = diffKey;
+        if (pendingEndGameTimeout) {
+            clearTimeout(pendingEndGameTimeout);
+            pendingEndGameTimeout = null;
+        }
         
         stats = {
             totalSpawned: 0,
@@ -130,6 +139,7 @@ window.WordRain = (function() {
         });
 
         stats.totalSpawned++;
+        refreshWordVisualState(wordInput ? wordInput.value.trim() : '');
     }
 
     function checkInput(e) {
@@ -152,7 +162,11 @@ window.WordRain = (function() {
             score += wordObj.text.length;
             updateStats();
             e.target.value = '';
+            refreshWordVisualState('');
+            return;
         }
+
+        refreshWordVisualState(typed);
     }
 
     function gameLoop(timestamp) {
@@ -173,19 +187,34 @@ window.WordRain = (function() {
             if (wordObj.y > gameArea.clientHeight - 50) {
                 stats.totalMissed++;
                 stats.missedWordsList.push(wordObj.text);
-                loseLife();
-                wordObj.element.remove();
+                wordObj.element.classList.remove('highlighted', 'incorrect');
+                wordObj.element.classList.add('missed');
+                loseLife(MISSED_WORD_FEEDBACK_MS);
+                setTimeout(() => wordObj.element.remove(), MISSED_WORD_FEEDBACK_MS);
                 activeWords.splice(i, 1);
+                refreshWordVisualState(wordInput ? wordInput.value.trim() : '');
             }
         }
 
         gameInterval = requestAnimationFrame(gameLoop);
     }
 
-    function loseLife() {
+    function loseLife(endDelayMs) {
         lives--;
         updateStats();
-        if (lives <= 0) endGame();
+        if (lives <= 0) {
+            if (endDelayMs > 0) {
+                gameRunning = false;
+                cancelAnimationFrame(gameInterval);
+                clearInterval(spawnInterval);
+                pendingEndGameTimeout = setTimeout(() => {
+                    pendingEndGameTimeout = null;
+                    endGame();
+                }, endDelayMs);
+                return;
+            }
+            endGame();
+        }
     }
 
     function updateStats() {
@@ -205,6 +234,10 @@ window.WordRain = (function() {
         gameRunning = false;
         cancelAnimationFrame(gameInterval);
         clearInterval(spawnInterval);
+        if (pendingEndGameTimeout) {
+            clearTimeout(pendingEndGameTimeout);
+            pendingEndGameTimeout = null;
+        }
         
         activeWords.forEach(w => w.element.remove());
         activeWords = [];
@@ -250,12 +283,42 @@ window.WordRain = (function() {
         isPaused = !isPaused;
         return isPaused;
     }
+
+    function refreshWordVisualState(typed) {
+        const normalized = typed.toLowerCase();
+        const previousPrefix = normalized.slice(0, -1);
+
+        activeWords.forEach(wordObj => {
+            wordObj.element.classList.remove('highlighted', 'incorrect');
+        });
+
+        if (!normalized) return;
+
+        const prefixMatches = activeWords.filter(wordObj =>
+            wordObj.text.toLowerCase().startsWith(normalized)
+        );
+
+        if (prefixMatches.length > 0) {
+            prefixMatches.forEach(wordObj => wordObj.element.classList.add('highlighted'));
+            return;
+        }
+
+        if (!previousPrefix) return;
+
+        activeWords
+            .filter(wordObj => wordObj.text.toLowerCase().startsWith(previousPrefix))
+            .forEach(wordObj => wordObj.element.classList.add('incorrect'));
+    }
     
     function stop() {
         gameRunning = false;
         isPaused = false;
         cancelAnimationFrame(gameInterval);
         clearInterval(spawnInterval);
+        if (pendingEndGameTimeout) {
+            clearTimeout(pendingEndGameTimeout);
+            pendingEndGameTimeout = null;
+        }
         activeWords.forEach(w => w.element.remove());
         activeWords = [];
     }
