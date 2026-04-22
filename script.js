@@ -404,7 +404,12 @@ const AppController = (function() {
     }
 
     function handleParagraphEnd(statsData) {
-        showGameStatsMenu("Эх бичих", statsData, () => window.ParagraphMode.startRandom());
+        showGameStatsMenu("Эх бичих", statsData, () => {
+            const paragraphToRestart = selectedParagraph || (window.typingParagraphs || [])[0];
+            if (paragraphToRestart && window.ParagraphMode) {
+                window.ParagraphMode.start(paragraphToRestart);
+            }
+        });
     }
 
     function handleKeyboardEnd(statsData) {

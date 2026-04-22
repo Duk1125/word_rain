@@ -58,6 +58,15 @@ window.ParagraphMode = (function() {
         return resultLines;
     }
 
+    function escapeDisplayChar(char) {
+        if (char == null) return '';
+        if (char === ' ') return '&nbsp;';
+        return String(char)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     function handleKeyDown(e) {
         if (!isActiveMode || isPaused) return;
 
@@ -133,35 +142,27 @@ window.ParagraphMode = (function() {
         let lineHtml = '';
         const target = line.reference;
         const typed = line.typed;
+        const renderLength = Math.max(target.length, typed.length);
 
-        // Requirement 1 & 2: Show typedChar for incorrect entries, not reference char
-        for (let i = 0; i < target.length; i++) {
+        for (let i = 0; i < renderLength; i++) {
             const char = target[i];
             const typedChar = typed[i];
-            
-            let charClass = '';
-            let displayChar = char; // Default to reference char for untyped or correct
 
-            if (typedChar == null) {
-                charClass = 'untyped';
-                displayChar = char;
-                // Show cursor only if active line and it's the current character
+            if (typedChar == null && char != null) {
                 if (isActive && i === typed.length) {
                     lineHtml += `<span class="cursor"></span>`;
                 }
-            } else if (char === typedChar) {
-                charClass = 'correct';
-                displayChar = char;
-            } else {
-                charClass = 'incorrect';
-                displayChar = typedChar; // Show actual typo
+                lineHtml += `<span class="untyped">${escapeDisplayChar(char)}</span>`;
+                continue;
             }
-            
-            lineHtml += `<span class="${charClass}">${displayChar === ' ' ? '&nbsp;' : displayChar}</span>`;
+
+            const isCorrect = char != null && char === typedChar;
+            const charClass = isCorrect ? 'correct' : 'incorrect';
+            const displayChar = isCorrect ? char : typedChar;
+            lineHtml += `<span class="${charClass}">${escapeDisplayChar(displayChar)}</span>`;
         }
-        
-        // If the line is finished and active, put cursor at the end
-        if (isActive && typed.length === target.length) {
+
+        if (isActive && typed.length === renderLength) {
             lineHtml += `<span class="cursor"></span>`;
         }
 

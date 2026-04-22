@@ -729,7 +729,12 @@ header {
 #paragraph-display-area {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    --paragraph-row-gap: 0.85em;
+    --paragraph-line-gap: 0.34em;
+    --paragraph-input-pad-y: 0.43em;
+    --paragraph-input-pad-x: 0.71em;
+    --paragraph-input-border-width: 1px;
+    gap: var(--paragraph-row-gap);
     text-align: left;
     width: 100%;
 }
@@ -737,7 +742,7 @@ header {
 .paragraph-line-pair {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--paragraph-line-gap);
     opacity: 0.4;
     transition: all 0.3s ease;
 }
@@ -752,16 +757,16 @@ header {
     letter-spacing: 0.5px;
     color: var(--text-muted);
     font-family: var(--font-heading);
-    padding: 0 25px; /* Match input padding-x */
-    margin-bottom: 5px;
+    padding: 0 calc(var(--paragraph-input-pad-x) + var(--paragraph-input-border-width));
+    margin-bottom: 0;
 }
 
 .line-input-container {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--surface-border);
-    padding: 15px 25px; /* Standardized padding */
-    border-radius: 10px;
-    min-height: 1.6em;
+    padding: var(--paragraph-input-pad-y) var(--paragraph-input-pad-x);
+    border-radius: 0.28em;
+    min-height: calc(1.5em + (var(--paragraph-input-pad-y) * 2));
     font-size: var(--game-font-size, 1.25rem); /* Linked to settings */
     position: relative;
     display: flex;
@@ -776,8 +781,8 @@ header {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-.line-input-container span { display: inline; white-space: pre; }
+.line-input-container span { display: inline; white-space: pre; line-height: inherit; }
 .line-input-container span.untyped { color: rgba(255, 255, 255, 0.15); }
 .line-input-container span.correct { color: var(--primary-color); text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
 .line-input-container span.incorrect { color: #ff3e3e; text-decoration: underline; background: rgba(255, 62, 62, 0.15); }
-.line-input-container .cursor { display: inline-block; width: 2px; height: 1.2em; background-color: var(--primary-color); margin-left: -1px; animation: blink 1s infinite; vertical-align: middle; }
+.line-input-container .cursor { display: inline-block; width: 0.05em; min-width: 2px; height: 1.15em; background-color: var(--primary-color); margin-left: -0.02em; animation: blink 1s infinite; vertical-align: middle; }

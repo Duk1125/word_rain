@@ -208,14 +208,17 @@ window.KeyboardMode = (function () {
     }
 
     // ── Finish ────────────────────────────────────────────
+    function calculateCPM(correctChars, timeInSeconds) {
+        if (timeInSeconds === 0) return 0;
+        return Math.round(correctChars / (timeInSeconds / 60));
+    }
+
     function finish() {
         isRunning = false;
         clearInterval(timerInterval);
 
         const accuracy  = charIndex > 0 ? Math.round(correctCount / charIndex * 100) : 0;
-        const wpm       = window.TypingAnalytics
-            ? window.TypingAnalytics.calculateWPM(correctCount, timeElapsed)
-            : Math.round((correctCount / 5) / Math.max(timeElapsed / 60, 0.01));
+        const cpm       = calculateCPM(correctCount, timeElapsed);
         const stageName = (window.keyboardLessons || [])[currentStageIndex]?.lesson || '';
         const fmt       = window.TypingAnalytics
             ? window.TypingAnalytics.formatTime(timeElapsed)
@@ -227,7 +230,7 @@ window.KeyboardMode = (function () {
             "Нийт текст":        TOTAL_CHARS,
             "Алдааны тоо":        errorCount,
             "Нарийвчлал":         accuracy + "%",
-            "WPM":                wpm
+            "CPM":                cpm
         };
 
         if (window.AppController && window.AppController.handleKeyboardEnd) {
