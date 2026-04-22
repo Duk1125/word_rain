@@ -200,9 +200,11 @@ window.KeyboardMode = (function () {
             ? window.TypingAnalytics.formatTime(timeElapsed)
             : timeElapsed + 'с';
         const acc = charIndex > 0 ? Math.round(correctCount / charIndex * 100) : 100;
+        const cpm = calculateCPM(correctCount, timeElapsed);
         statsEl.innerHTML = `
             <div class="stat-item">Шат: <span>${stageName}</span></div>
             <div class="stat-item">Хугацаа: <span>${fmt}</span></div>
+            <div class="stat-item">CPM: <span>${cpm}</span></div>
             <div class="stat-item">Нарийвчлал: <span>${acc}%</span></div>
         `;
     }

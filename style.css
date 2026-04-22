@@ -803,4 +803,4 @@ header {
 .line-input-container span.untyped { color: rgba(255, 255, 255, 0.15); }
 .line-input-container span.correct { color: var(--primary-color); text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
 .line-input-container span.incorrect { color: #ff3e3e; text-decoration: underline; background: rgba(255, 62, 62, 0.15); }
-.line-input-container .cursor { display: inline-block; width: 0.05em; min-width: 2px; height: 1.15em; background-color: var(--primary-color); margin-left: -0.02em; animation: blink 1s infinite; vertical-align: middle; }
+.line-input-container .cursor { display: inline-block; width: 0.05em; min-width: 2px; height: calc(1em * 1.15); background-color: var(--primary-color); margin-left: calc(var(--paragraph-input-border-width) * -1); animation: blink 1s infinite; vertical-align: middle; flex: 0 0 auto; }
